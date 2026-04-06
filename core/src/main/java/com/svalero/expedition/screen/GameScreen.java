@@ -3,23 +3,35 @@ package com.svalero.expedition.screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import com.svalero.expedition.screen.MainMenuScreen;
 import com.svalero.expedition.ExpeditionGame;
+import com.svalero.expedition.manager.ConfigurationManager;
+import com.svalero.expedition.manager.LogicManager;
+import com.svalero.expedition.manager.RenderManager;
+import com.svalero.expedition.manager.ResourceManager;
 
 
 public class GameScreen implements Screen {
 
     private final ExpeditionGame game;
+    private final ConfigurationManager configurationManager;
+    private final LogicManager logicManager; // actualiza el estado del juego
+    private final RenderManager renderManager; // responsable del dibujo
+    private final SpriteBatch batch;
 
     public GameScreen(ExpeditionGame game) {
         this.game = game;
+        this.configurationManager = new ConfigurationManager();
+        this.logicManager = new LogicManager();
+        this.batch = new SpriteBatch();
+        this.renderManager = new RenderManager(batch, logicManager);
     }
 
     @Override
     public void show() {
-
+        ResourceManager.loadAllResources();
     }
 
     @Override
@@ -27,6 +39,9 @@ public class GameScreen implements Screen {
         // limpia la pantalla en cada frame
         // fondo gris oscuro
         ScreenUtils.clear(0, 0, 0.2f, 1);
+
+        logicManager.update(delta);
+        renderManager.render();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new MainMenuScreen(game));
@@ -56,6 +71,9 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
+        renderManager.dispose();
+        batch.dispose();
+        ResourceManager.dispose();
 
     }
 }
