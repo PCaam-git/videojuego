@@ -6,6 +6,8 @@ public class Player extends Character{
     private int score;
     private float directionX;
     private float directionY;
+    private float width;
+    private float height;
 
     public Player(float x, float y, float speed, int energy, int score) {
         super(x, y, speed);
@@ -13,6 +15,8 @@ public class Player extends Character{
         this.score = score;
         this.directionX = 0;
         this.directionY = 0;
+        this.width = 32;
+        this.height = 48;
     }
 
     @Override
@@ -44,5 +48,21 @@ public class Player extends Character{
 
     public void setDirectionY(float directionY) {
         this.directionY = directionY;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public void setY(float y) {
+        this.y = y;
     }
 }

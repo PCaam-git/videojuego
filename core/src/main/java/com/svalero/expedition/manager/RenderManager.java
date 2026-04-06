@@ -2,6 +2,7 @@ package com.svalero.expedition.manager;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.Texture;
 
 import com.svalero.expedition.domain.Player;
 
@@ -10,11 +11,13 @@ public class RenderManager {
     private final SpriteBatch batch;
     private final LogicManager logicManager;
     private final BitmapFont font;
+    private final Texture playerTexture;
 
     public RenderManager(SpriteBatch batch, LogicManager logicManager) {
         this.batch = batch;
         this.logicManager = logicManager;
         this.font = new BitmapFont();
+        this.playerTexture = new Texture("white.png");
     }
 
     public void render() {
@@ -32,15 +35,12 @@ public class RenderManager {
         font.draw(batch, "Posicion Y: " + player.getY(), 50, 230);
 
         // Representación visual del jugador
-        font.draw(batch, "Niña", player.getX(), player.getY());
+        batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
         batch.end();
     }
 
     public void dispose() {
         font.dispose();
-    }
-
-    public SpriteBatch getBatch() {
-        return batch;
+        playerTexture.dispose();
     }
 }
