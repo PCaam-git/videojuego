@@ -5,20 +5,24 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Graphics;
 
 import com.svalero.expedition.domain.Player;
+import com.svalero.expedition.domain.Relic;
 
 public class LogicManager {
 
-    private Player player;
+    private final Player player;
+    private final Relic relic;
 
     // Ubicación del jugador
     public LogicManager() {
         player = new Player(100,100,150,100,0);
+        relic = new Relic(500, 250);
     }
 
     public void update(float delta) {
         handleInput(); // handleInput decide la dirección
         player.update(delta); // mueve al personaje (niña)
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
+        checkRelicCollision(); // comprueba si se ha llegado al premio
     }
 
 
@@ -61,7 +65,32 @@ public class LogicManager {
         }
     }
 
+    private void checkRelicCollision() {
+        if (relic.isCollected()) {
+            return;
+        }
+
+        // Comprueba si hay solapamiento horizontal entre el jugador y el premio
+        // El jugador no ha pasado por la derecha del premio (player.getX() < relic.getX() + relic.getWidth())
+            // y el jugador no está todavía por la izquierda del premio (player.getX() + player.getWidth() > relic.getX()).
+        boolean collisionX = player.getX() < relic.getX() + relic.getWidth()
+            && player.getX() + player.getWidth() > relic.getX();
+
+        // Comprueba si hay solapamiento vertical entre el jugador y el premio
+        boolean collisionY = player.getY() < relic.getY() + relic.getHeight()
+            && player.getY() + player.getHeight() > relic.getY();
+
+        if (collisionX && collisionY) {
+            relic.setCollected(true);
+            player.setScore(player.getScore()+ 100);
+        }
+    }
+
     public Player getPlayer() {
         return player;
+    }
+
+    public Relic getRelic() {
+        return relic;
     }
 }

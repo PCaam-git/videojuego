@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.Texture;
 
 import com.svalero.expedition.domain.Player;
+import com.svalero.expedition.domain.Relic;
 
 public class RenderManager {
 
@@ -36,6 +37,13 @@ public class RenderManager {
 
         // Representación visual del jugador
         batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
+
+        Relic relic = logicManager.getRelic();
+
+        if (!relic.isCollected()) {
+            batch.draw(playerTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+        }
+
         batch.end();
     }
 
