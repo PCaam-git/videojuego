@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 
 import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
+import com.svalero.expedition.domain.Supply;
 
 public class RenderManager {
 
@@ -30,6 +31,9 @@ public class RenderManager {
         font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 390);
         font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy(), 50, 350);
         font.draw(batch, "Pulsa ESC para volver al menú", 50, 310);
+        font.draw(batch, "Frodo te acompaña durante la aventura", 50, 150);
+        font.draw(batch, "Pulsa P para llamar a Frodo", 50, 160);
+        font.draw(batch, "Frodo se acercará y te curará", 50, 130);
 
         // Se muestra la posición del jugador para comprobar el movimiento
         font.draw(batch, "Posicion X: " + player.getX(), 50, 270);
@@ -43,6 +47,9 @@ public class RenderManager {
         if (!relic.isCollected()) {
             batch.draw(playerTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
         }
+
+        Supply supply = logicManager.getSupply();
+        batch.draw(playerTexture, supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
 
         batch.end();
     }
