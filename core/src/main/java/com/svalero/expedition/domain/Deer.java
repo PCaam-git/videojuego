@@ -32,18 +32,22 @@ public class Deer extends NPC {
         y += velocityY *delta;
     }
 
-    public void activateRight() {
+    public void activateTowards(float targetX, float targetY) {
         isActive = true;
-        movingRight = true;
-        velocityX = speed;
-        velocityY = -speed;
-    }
 
-    public void activateLeft() {
-        isActive = true;
-        movingRight = false;
-        velocityX = -speed;
-        velocityY = speed;
+        float distanceX = targetX - x;
+        float distanceY = targetY - y;
+        float distance = (float) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+        if (distance == 0) {
+            velocityX = 0;
+            velocityY = 0;
+            return;
+        }
+
+        velocityX = (distanceX / distance) * speed;
+        velocityY = (distanceY / distance) * speed;
+        movingRight = velocityX > 0;
     }
 
     public void resetPosition (float x, float y) {

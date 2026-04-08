@@ -10,8 +10,8 @@ public class Supply extends NPC {
 
     public Supply(float x, float y, float speed) {
         super (x, y, speed);
-        this.width = 28;
-        this.height = 28;
+        this.width = 64;
+        this.height = 64;
         this.called = false;
         this.followDistance = 64; // distancia de acompañamiento entre Frodo y la niña
     }
