@@ -16,6 +16,7 @@ public class ResourceManager {
         manager.load("dog/dog_idle.png", Texture.class);
         manager.load("bear/bear_idle.png", Texture.class);
         manager.load("deer/deer_walk_4.png", Texture.class);
+        manager.load("items/apple_item.png", Texture.class);
 
         manager.finishLoading();
     }

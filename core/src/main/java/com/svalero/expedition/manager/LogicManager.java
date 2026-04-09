@@ -9,6 +9,7 @@ import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
 import com.svalero.expedition.domain.Deer;
+import com.svalero.expedition.domain.ImmunityItem;
 import com.svalero.expedition.domain.ScoreItem;
 
 public class LogicManager {
@@ -23,12 +24,17 @@ public class LogicManager {
     private static final float SUPPLY_CALL_SPEED = 90f;
     private static final float SUPPLY_FOLLOW_SPEED = 70f;
 
+    private static final float IMMUNITY_DURATION = 5f;
+
     private final Player player;
     private final Relic relic;
     private final Supply supply;
     private final Guardian guardian;
     private final Deer deer;
     private final ScoreItem scoreItem;
+    private final ImmunityItem immunityItem;
+    private float immunityTimer;
+
         // timers
     private float guardianDamageTimer; // tiempo de espera entre daños consecutivos.
     private float deerDamageTimer; //tiempo de espera entre daños consecutivos
@@ -48,6 +54,8 @@ public class LogicManager {
         scoreItem = new ScoreItem(320, 220, 24, 24, 25);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 300);
+        immunityItem = new ImmunityItem(200, 300, 24, 24);
+        immunityTimer = 0;
         scoreMessageTimer = 0;
 
         // El ciervo empieza fuera de pantalla por la izquierda, pero a la altura visible del borde superior
@@ -86,6 +94,7 @@ public class LogicManager {
         updateSupplyUnavailableMessageTimer(delta);
         updateSupplyHealMessageTimer(delta);
         updateDeerHitMessageTimer(delta);
+        updateImmunityTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
@@ -94,6 +103,7 @@ public class LogicManager {
         checkSupplyCollision(); // comprueba si Frodo ha alcanzado al personaje
         checkGuardianCollision(); // comprueba si el oso ha alcanzado al personaje
         checkDeerCollision();
+        checkImmunityItemCollision();
         checkPlayerEnergy();
 
         previousPlayerX = player.getX();
@@ -215,6 +225,33 @@ public class LogicManager {
             scoreMessageTimer -= delta;
         }
     }
+
+
+    // --- ITEM INMUNIDAD ---
+
+    private void updateImmunityTimer(float delta) {
+        if (immunityTimer > 0) {
+            immunityTimer -= delta;
+        }
+    }
+
+    private void checkImmunityItemCollision() {
+        if (immunityItem.isCollected()) {
+            return;
+        }
+
+        boolean collisionX = player.getX() < immunityItem.getX() + immunityItem.getWidth()
+            && player.getX() + player.getWidth() > immunityItem.getX();
+
+        boolean collisionY = player.getY() < immunityItem.getY() + immunityItem.getHeight()
+            && player.getY() + player.getHeight() > immunityItem.getY();
+
+        if (collisionX && collisionY) {
+            immunityItem.setCollected(true);
+            immunityTimer = IMMUNITY_DURATION;
+        }
+    }
+
 
     // --- FRODO ---
 
@@ -367,7 +404,7 @@ public class LogicManager {
             && player.getY() + player.getHeight() > guardian.getY();
 
 
-        if (collisionX && collisionY && guardianDamageTimer <= 0) {
+        if (collisionX && collisionY && guardianDamageTimer <= 0 && immunityTimer <= 0) {
             // el oso quita una vida
             player.loseLife();
 
@@ -457,7 +494,7 @@ public class LogicManager {
             && player.getY() + player.getHeight() > deer.getY();
 
 
-        if (collisionX && collisionY && deerDamageTimer <= 0) {
+        if (collisionX && collisionY && deerDamageTimer <= 0 && immunityTimer <=0) {
             // el ciervo quita el 50% de la energía disponible
             int damage = player.getEnergy() / 2;
             player.setEnergy(player.getEnergy() - damage);
@@ -535,6 +572,10 @@ public class LogicManager {
         return deer;
     }
 
+    public ImmunityItem getImmunityItem() {
+        return immunityItem;
+    }
+
     public float getGuardianDamageTimer() {
         return guardianDamageTimer;
     }
@@ -562,6 +603,7 @@ public class LogicManager {
     public float getDeerHitMessageTimer() {
         return deerHitMessageTimer;
     }
+
 
     public boolean isGameOver() {
         return player.getLives() <= 0;

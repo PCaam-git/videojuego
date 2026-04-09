@@ -10,6 +10,7 @@ import com.svalero.expedition.domain.ScoreItem;
 import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
 import com.svalero.expedition.domain.Deer;
+import com.svalero.expedition.domain.ImmunityItem;
 
 public class RenderManager {
 
@@ -21,6 +22,7 @@ public class RenderManager {
     private final Texture supplyTexture;
     private final Texture guardianTexture;
     private final Texture deerTexture;
+    private final Texture immunityItemTexture;
 
     public RenderManager(SpriteBatch batch, LogicManager logicManager) {
         this.batch = batch;
@@ -31,6 +33,7 @@ public class RenderManager {
         this.supplyTexture = ResourceManager.getTexture("dog/dog_idle.png");
         this.guardianTexture = ResourceManager.getTexture("bear/bear_idle.png");
         this.deerTexture = ResourceManager.getTexture("deer/deer_walk_4.png");
+        this.immunityItemTexture = ResourceManager.getTexture("items/apple_item.png");
     }
 
     public void render() {
@@ -76,6 +79,11 @@ public class RenderManager {
         ScoreItem scoreItem = logicManager.getScoreItem();
         if(!scoreItem.isCollected()) {
             batch.draw(scoreItemTexture, scoreItem.getX(), scoreItem.getY(), scoreItem.getWidth(), scoreItem.getHeight());
+        }
+
+        ImmunityItem immunityItem = logicManager.getImmunityItem();
+        if (!immunityItem.isCollected()) {
+            batch.draw(immunityItemTexture, immunityItem.getX(), immunityItem.getY(), immunityItem.getWidth(), immunityItem.getHeight());
         }
 
         Supply supply = logicManager.getSupply();
