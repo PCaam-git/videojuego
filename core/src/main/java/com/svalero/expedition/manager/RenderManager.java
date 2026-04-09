@@ -35,24 +35,16 @@ public class RenderManager {
 
         batch.begin();
         // Información básica de la pantalla de juego
-        font.draw(batch, "Pantalla de juego", 50, 430);
-        font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 390);
-        font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 350);
-        font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 310);
-        font.draw(batch, "Pulsa ESC para volver al menú", 50, 270);
+        font.draw(batch, "Pulsa ESC para volver al menú", 50, 460);
+        font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 410);
+        font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 380);
+        font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 350);
+        font.draw(batch, "Nivel: 1", 50, 320);
 
-        font.draw(batch, "Frodo te acompaña durante la aventura", 50, 150);
-        font.draw(batch, "Pulsa P para llamar a Frodo y que te cure", 50, 160);
-        font.draw(batch, "Evita al oso que protege la entrada", 50, 100);
-        font.draw(batch, "¡Cuidado con el ciervo!", 50, 70);
 
         if (logicManager.getGuardianDamageTimer() > 0) {
             font.draw(batch, "¡El oso te ha atacado!", 50, 70);
         }
-
-        // Se muestra la posición del jugador para comprobar el movimiento
-        //font.draw(batch, "Posicion X: " + player.getX(), 50, 270);
-        //font.draw(batch, "Posicion Y: " + player.getY(), 50, 230);
 
         // Representación visual del jugador
         batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
