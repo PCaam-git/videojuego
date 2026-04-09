@@ -3,6 +3,12 @@ package com.svalero.expedition.manager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Graphics;
+import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
+import com.badlogic.gdx.math.Rectangle;
 
 import com.sun.source.tree.BreakTree;
 import com.svalero.expedition.domain.Player;
@@ -16,8 +22,8 @@ import com.svalero.expedition.domain.PoisonItem;
 
 public class LogicManager {
 
-    private static final float PLAYER_START_X = 100;
-    private static final float PLAYER_START_Y = 150;
+    private static final float PLAYER_START_X = 20;
+    private static final float PLAYER_START_Y = 310;
 
     private static final float SUPPLY_START_X = 36;
     private static final float SUPPLY_START_Y = 100;
@@ -33,13 +39,13 @@ public class LogicManager {
     private static final float POISON_SPEED_FACTOR = 0.2f;
 
     private final Player player;
-    private final Relic relic;
+    private Relic relic;
     private final Supply supply;
-    private final Guardian guardian;
-    private final Deer deer;
-    private final ScoreItem scoreItem;
-    private final ImmunityItem immunityItem;
-    private final PoisonItem poisonItem;
+    private Guardian guardian;
+    private Deer deer;
+    private ScoreItem scoreItem;
+    private ImmunityItem immunityItem;
+    private PoisonItem poisonItem;
 
 
         // timers
@@ -128,6 +134,8 @@ public class LogicManager {
         checkPoisonItemCollision();
         checkPlayerEnergy();
 
+        loadMapObjects();
+
         previousPlayerX = player.getX();
     }
 
@@ -168,6 +176,57 @@ public class LogicManager {
                 supply.setCalled(true);
             } else {
                 supplyUnavailableMessageTimer = 1.5f;
+            }
+        }
+    }
+
+    private void loadMapObjects() {
+
+        TiledMap map = new TmxMapLoader().load("level_01/mapa_nivel_01.tmx");
+
+        MapLayer logicLayer = map.getLayers().get("Logica");
+        MapObjects objects = logicLayer.getObjects();
+
+        for (RectangleMapObject object : objects.getByType(RectangleMapObject.class)) {
+
+            Rectangle rect = object.getRectangle();
+            String type = object.getProperties().get("type", String.class);
+
+            if (type == null) continue;
+
+            float x = rect.x;
+            float y = rect.y;
+
+            switch (type) {
+
+                case "start":
+                    player.setX(x);
+                    player.setY(y);
+                    break;
+
+                case "relic":
+                    relic = new Relic(x, y);
+                    break;
+
+                case "scoreItem":
+                    scoreItem = new ScoreItem(x, y, 24, 24, 25);
+                    break;
+
+                case "immunityItem":
+                    immunityItem = new ImmunityItem(x, y, 24, 24);
+                    break;
+
+                case "poisonItem":
+                    poisonItem = new PoisonItem(x, y, 24, 24);
+                    break;
+
+                case "guardian":
+                    guardian = new Guardian(x, y, 100, 150, 300);
+                    break;
+
+                case "deer":
+                    deer.resetPosition(x, y);
+                    break;
             }
         }
     }
