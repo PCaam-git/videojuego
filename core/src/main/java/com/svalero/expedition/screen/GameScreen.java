@@ -3,7 +3,11 @@ package com.svalero.expedition.screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import com.svalero.expedition.ExpeditionGame;
@@ -21,6 +25,10 @@ public class GameScreen implements Screen {
     private RenderManager renderManager; // responsable del dibujo
     private final SpriteBatch batch;
 
+    private TiledMap tiledMap;
+    private OrthogonalTiledMapRenderer mapRenderer;
+    private OrthographicCamera camera;
+
     public GameScreen(ExpeditionGame game) {
         this.game = game;
         this.configurationManager = new ConfigurationManager();
@@ -32,6 +40,13 @@ public class GameScreen implements Screen {
     public void show() {
         ResourceManager.loadAllResources();
         this.renderManager = new RenderManager(batch, logicManager);
+
+        tiledMap = new TmxMapLoader().load("level_01/mapa_nivel_01.tmx");
+        mapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
+
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.update();
     }
 
     @Override
@@ -52,17 +67,20 @@ public class GameScreen implements Screen {
             return;
         }
 
+        mapRenderer.setView(camera);
+        mapRenderer.render();
+
         renderManager.render();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new MainMenuScreen(game));
         }
-
     }
 
     @Override
     public void resize(int width, int height) {
-
+        camera.setToOrtho(false, width, height);
+        camera.update();
     }
 
     @Override
@@ -83,8 +101,9 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         renderManager.dispose();
+        mapRenderer.dispose();
+        tiledMap.dispose();
         batch.dispose();
         ResourceManager.dispose();
-
     }
 }
