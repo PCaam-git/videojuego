@@ -29,7 +29,7 @@ public class LogicManager {
 
     // Ubicación del jugador
     public LogicManager() {
-        player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 0);
+        player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
         relic = new Relic(600, 220);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 300);
@@ -67,6 +67,7 @@ public class LogicManager {
         checkSupplyCollision(); // comprueba si Frodo ha alcanzado al personaje
         checkGuardianCollision(); // comprueba si el oso ha alcanzado al personaje
         checkDeerCollision();
+        checkPlayerEnergy();
 
         previousPlayerX = player.getX();
     }
@@ -270,8 +271,9 @@ public class LogicManager {
         boolean collisionY = player.getY() < guardian.getY() + guardian.getHeight()
             && player.getY() + player.getHeight() > guardian.getY();
 
+        // el oso quita una vida
         if (collisionX && collisionY && guardianDamageTimer <= 0) {
-            player.setEnergy(player.getEnergy() - 10);
+            player.loseLife();
 
             // Activa de un segundo de impacto
             guardianDamageTimer = 1f;
@@ -355,8 +357,10 @@ public class LogicManager {
         boolean collisionY = player.getY() < deer.getY() + deer.getHeight()
             && player.getY() + player.getHeight() > deer.getY();
 
+        // el ciervo quita el 50% de la energía
         if (collisionX && collisionY && deerDamageTimer <= 0) {
-            player.setEnergy(player.getEnergy() - 10);
+            int damage = player.getEnergy() / 2;
+            player.setEnergy(player.getEnergy() - damage);
 
             // Activa de un segundo de impacto
             deerDamageTimer = 1f;
@@ -374,6 +378,27 @@ public class LogicManager {
             supply.setY(player.getY());
             supply.setCalled(false);
         }
+    }
+
+    private void checkPlayerEnergy() {
+        if (player.getEnergy() > 0) {
+            return;
+        }
+
+        // pierde una vida
+        player.loseLife();
+
+        // recupera toda la energía
+        player.setEnergy(player.getMaxEnergy());
+
+        // Se reinicia la posición del jugador
+        player.setX(PLAYER_START_X);
+        player.setY(PLAYER_START_Y);
+
+        // Se reinicia la posición de Frodo
+        supply.setX(SUPPLY_START_X);
+        supply.setY(SUPPLY_START_Y);
+        supply.setCalled(false);
     }
 
     public Player getPlayer() {
@@ -398,5 +423,9 @@ public class LogicManager {
 
     public float getGuardianDamageTimer() {
         return guardianDamageTimer;
+    }
+
+    public boolean isGameOver() {
+        return player.getLives() <= 0;
     }
 }

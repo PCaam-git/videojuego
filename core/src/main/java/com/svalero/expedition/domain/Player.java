@@ -4,16 +4,18 @@ public class Player extends Character{
 
     private int energy;
     private int maxEnergy;
+    private int lives;
     private int score;
     private float directionX;
     private float directionY;
     private float width;
     private float height;
 
-    public Player(float x, float y, float speed, int energy, int score) {
+    public Player(float x, float y, float speed, int energy, int lives, int score) {
         super(x, y, speed);
         this.energy = energy;
         this.maxEnergy = energy;
+        this.lives = lives;
         this.score = score;
         this.directionX = 0;
         this.directionY = 0;
@@ -36,6 +38,10 @@ public class Player extends Character{
         return maxEnergy;
     }
 
+    public int getLives() {
+        return lives;
+    }
+
     public int getScore() {
         return score;
     }
@@ -47,6 +53,20 @@ public class Player extends Character{
             this.energy = maxEnergy;
         } else {
             this.energy = energy;
+        }
+    }
+
+    public void setLives(int lives) {
+        if (lives < 0) {
+            this.lives = 0;
+        } else {
+            this.lives = lives;
+        }
+    }
+
+    public void loseLife() {
+        if (lives > 0) {
+            lives--;
         }
     }
 

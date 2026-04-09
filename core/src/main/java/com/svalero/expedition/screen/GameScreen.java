@@ -26,12 +26,10 @@ public class GameScreen implements Screen {
         this.configurationManager = new ConfigurationManager();
         this.logicManager = new LogicManager();
         this.batch = new SpriteBatch();
-        //
     }
 
     @Override
     public void show() {
-
         ResourceManager.loadAllResources();
         this.renderManager = new RenderManager(batch, logicManager);
     }
@@ -43,6 +41,12 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0, 0, 0.2f, 1);
 
         logicManager.update(delta);
+
+        if( logicManager.isGameOver()) {
+            game.setScreen(new GameOverScreen(game));
+            return;
+        }
+
         renderManager.render();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
