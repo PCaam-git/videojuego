@@ -9,6 +9,7 @@ import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
 import com.svalero.expedition.domain.Deer;
+import com.svalero.expedition.domain.ScoreItem;
 
 public class LogicManager {
 
@@ -22,6 +23,7 @@ public class LogicManager {
     private final Supply supply;
     private final Guardian guardian;
     private final Deer deer;
+    private final ScoreItem scoreItem;
     private float guardianDamageTimer; // tiempo de espera entre daños consecutivos
     private float deerDamageTimer; //tiempo de espera entre daños consecutivos
     private float previousPlayerX;
@@ -31,6 +33,7 @@ public class LogicManager {
     public LogicManager() {
         player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
         relic = new Relic(600, 220);
+        scoreItem = new ScoreItem(320, 220, 24, 24, 25);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 300);
 
@@ -64,6 +67,7 @@ public class LogicManager {
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
         checkRelicCollision(); // comprueba si se ha llegado al premio
+        checkScoreItemCollision(); // comprueba si se ha llegado al item
         checkSupplyCollision(); // comprueba si Frodo ha alcanzado al personaje
         checkGuardianCollision(); // comprueba si el oso ha alcanzado al personaje
         checkDeerCollision();
@@ -149,6 +153,28 @@ public class LogicManager {
         if (collisionX && collisionY) {
             relic.setCollected(true);
             player.setScore(player.getScore()+ 100);
+        }
+    }
+
+    // --- ITEM SCORE+ ---
+    private void checkScoreItemCollision() {
+        if (scoreItem.isCollected()) {
+            return;
+        }
+
+        if (guardianDamageTimer > 0) {
+            return;
+        }
+
+        boolean collisionX = player.getX() < scoreItem.getX() + scoreItem.getWidth()
+            && player.getX() + player.getWidth() > scoreItem.getX();
+
+        boolean collisionY = player.getY() < scoreItem.getY() + scoreItem.getHeight()
+            && player.getY() + player.getHeight() > scoreItem.getY();
+
+        if (collisionX && collisionY) {
+            scoreItem.setCollected(true);
+            player.setScore(player.getScore() + scoreItem.getScoreValue());
         }
     }
 
@@ -415,6 +441,10 @@ public class LogicManager {
 
     public Relic getRelic() {
         return relic;
+    }
+
+    public ScoreItem getScoreItem() {
+        return scoreItem;
     }
 
     public Supply getSupply() {

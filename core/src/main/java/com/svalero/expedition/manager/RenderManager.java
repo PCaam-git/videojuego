@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 
 import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
+import com.svalero.expedition.domain.ScoreItem;
 import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
 import com.svalero.expedition.domain.Deer;
@@ -16,6 +17,7 @@ public class RenderManager {
     private final LogicManager logicManager;
     private final BitmapFont font;
     private final Texture playerTexture;
+    private final Texture scoreItemTexture;
     private final Texture supplyTexture;
     private final Texture guardianTexture;
     private final Texture deerTexture;
@@ -25,6 +27,7 @@ public class RenderManager {
         this.logicManager = logicManager;
         this.font = new BitmapFont();
         this.playerTexture = ResourceManager.getTexture("player/player_idle.png");
+        this.scoreItemTexture = ResourceManager.getTexture("items/egg_item.png");
         this.supplyTexture = ResourceManager.getTexture("dog/dog_idle.png");
         this.guardianTexture = ResourceManager.getTexture("bear/bear_idle.png");
         this.deerTexture = ResourceManager.getTexture("deer/deer_walk_4.png");
@@ -53,6 +56,11 @@ public class RenderManager {
 
         if (!relic.isCollected()) {
             batch.draw(playerTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+        }
+
+        ScoreItem scoreItem = logicManager.getScoreItem();
+        if(!scoreItem.isCollected()) {
+            batch.draw(scoreItemTexture, scoreItem.getX(), scoreItem.getY(), scoreItem.getWidth(), scoreItem.getHeight());
         }
 
         Supply supply = logicManager.getSupply();
