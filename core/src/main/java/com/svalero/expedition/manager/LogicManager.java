@@ -424,4 +424,8 @@ public class LogicManager {
     public float getGuardianDamageTimer() {
         return guardianDamageTimer;
     }
+
+    public boolean isGameOver() {
+        return player.getLives() <= 0;
+    }
 }
