@@ -29,7 +29,7 @@ public class LogicManager {
 
     // Ubicación del jugador
     public LogicManager() {
-        player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 0);
+        player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
         relic = new Relic(600, 220);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 300);
