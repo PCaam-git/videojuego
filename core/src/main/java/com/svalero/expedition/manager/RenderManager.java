@@ -45,7 +45,7 @@ public class RenderManager {
         font.draw(batch, "Nivel: 1", 50, 320);
 
         if (logicManager.getGuardianDamageTimer() > 0) {
-            font.draw(batch, "¡El oso te ha atacado!", 50, 70);
+            font.draw(batch, "¡El oso te ha atacado!", 50, 100);
         }
 
         if (logicManager.getScoreMessageTimer() > 0) {
@@ -53,7 +53,11 @@ public class RenderManager {
         }
 
         if (logicManager.getSupplyUnavailableMessageTimer() > 0) {
-            font.draw(batch, "Todavía no puedes pedir ayuda a Frodo", 50, 55);
+            font.draw(batch, "Todavía no puedes pedir ayuda a Frodo", 50, 100);
+        }
+
+        if (logicManager.getSupplyHealMessageTimer() > 0) {
+            font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 50, 100);
         }
 
         // Representación visual del jugador

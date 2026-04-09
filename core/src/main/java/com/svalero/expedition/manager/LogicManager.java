@@ -36,6 +36,8 @@ public class LogicManager {
     private float scoreMessageTimer;
     private float supplyCooldownTimer;
     private float supplyUnavailableMessageTimer; // Mensaje ayuda de Frodo no disponible
+    private float supplyHealMessageTimer;
+    private int lastSupplyHealAmount;
 
 
     // Ubicación del jugador
@@ -54,6 +56,8 @@ public class LogicManager {
         deerDamageTimer = 0;
         supplyCooldownTimer = 0;
         supplyUnavailableMessageTimer = 0;
+        supplyHealMessageTimer = 0;
+        lastSupplyHealAmount = 0;
         previousPlayerX = player.getX();
     }
 
@@ -78,6 +82,7 @@ public class LogicManager {
         updateScoreMessageTimer(delta);
         updateSupplyCooldownTimer(delta);
         updateSupplyUnavailableMessageTimer(delta);
+        updateSupplyHealMessageTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
@@ -222,6 +227,12 @@ public class LogicManager {
         }
     }
 
+    private void updateSupplyHealMessageTimer(float delta) {
+        if (supplyHealMessageTimer > 0 ) {
+            supplyHealMessageTimer -= delta;
+        }
+    }
+
     private void moveSupply(float delta) {
         float targetX;
         float targetY;
@@ -309,7 +320,12 @@ public class LogicManager {
             && player.getY() + player.getHeight() > supply.getY();
 
         if (collisionX && collisionY) {
+            int previousEnergy = player.getEnergy();
+
             player.setEnergy(player.getEnergy() + SUPPLY_HEALTH_AMOUNT);
+
+            lastSupplyHealAmount = player.getEnergy() - previousEnergy;
+            supplyHealMessageTimer = 1.5f;
 
             // Frodo entra en espera tras curar a Emily
             supplyCooldownTimer = SUPPLY_CALL_COOLDOWN;
@@ -523,6 +539,14 @@ public class LogicManager {
 
     public float getSupplyUnavailableMessageTimer() {
         return supplyUnavailableMessageTimer;
+    }
+
+    public float getSupplyHealMessageTimer() {
+        return supplyHealMessageTimer;
+    }
+
+    public int getLastSupplyHealAmount() {
+        return lastSupplyHealAmount;
     }
 
     public boolean isGameOver() {
