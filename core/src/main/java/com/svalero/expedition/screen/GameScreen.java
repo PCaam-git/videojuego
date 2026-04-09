@@ -18,7 +18,7 @@ public class GameScreen implements Screen {
     private final ExpeditionGame game;
     private final ConfigurationManager configurationManager;
     private final LogicManager logicManager; // actualiza el estado del juego
-    private final RenderManager renderManager; // responsable del dibujo
+    private RenderManager renderManager; // responsable del dibujo
     private final SpriteBatch batch;
 
     public GameScreen(ExpeditionGame game) {
@@ -26,12 +26,14 @@ public class GameScreen implements Screen {
         this.configurationManager = new ConfigurationManager();
         this.logicManager = new LogicManager();
         this.batch = new SpriteBatch();
-        this.renderManager = new RenderManager(batch, logicManager);
+        //
     }
 
     @Override
     public void show() {
+
         ResourceManager.loadAllResources();
+        this.renderManager = new RenderManager(batch, logicManager);
     }
 
     @Override

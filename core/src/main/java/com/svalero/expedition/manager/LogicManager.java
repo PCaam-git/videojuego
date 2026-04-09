@@ -301,16 +301,19 @@ public class LogicManager {
             return;
         }
 
+        float playerCenterX = player.getX() + player.getWidth() / 2;
+        float playerCenterY = player.getY() + player.getHeight() / 2;
+
         // La niña cruza el punto de activación hacia la derecha
         if (previousPlayerX <= deer.getTriggerX() && player.getX() > deer.getTriggerX()) {
             deer.resetPosition(-60, Gdx.graphics.getHeight() - deer.getHeight());
-            deer.activateRight();
+            deer.activateTowards(playerCenterX, playerCenterY);
         }
 
         // La niña cruza el punto de activación hacia la izquierda
         if (previousPlayerX >= deer.getTriggerX() && player.getX() < deer.getTriggerX()) {
-            deer.resetPosition(Gdx.graphics.getWidth() +60, 0);
-            deer.activateLeft();
+            deer.resetPosition(Gdx.graphics.getWidth() + 60, 0);
+            deer.activateTowards(playerCenterX, playerCenterY);
         }
     }
 
@@ -320,22 +323,25 @@ public class LogicManager {
             return;
         }
 
-        // Si el ciervo cruza hacia la derecha, solo se resetea cuando sale por la derecha
-        // o por la parte inferior de la pantalla.
+        // El ciervo no debe invadir la zona final del guardián.
+        // Si llega a esa parte del escenario, se resetea para poder volver a activarse.
+        float deerLimitRight = guardian.getX() - deer.getWidth() - 20;
+        float deerLimitLeft = deer.getTriggerX() + 20;
+
         if (deer.isMovingRight()) {
             boolean outRight = deer.getX() > Gdx.graphics.getWidth();
             boolean outBottom = deer.getY() + deer.getHeight() < 0;
+            boolean reachedGuardianZone = deer.getX() > deerLimitRight;
 
-            if (outRight || outBottom) {
+            if (outRight || outBottom || reachedGuardianZone) {
                 deer.resetPosition(-60, Gdx.graphics.getHeight() - deer.getHeight());
             }
         } else {
-            // Si cruza hacia la izquierda, solo se resetea cuando sale por la izquierda
-            // o por la parte superior.
             boolean outLeft = deer.getX() + deer.getWidth() < 0;
             boolean outTop = deer.getY() > Gdx.graphics.getHeight();
+            boolean crossedBackTooMuch = deer.getX() < deerLimitLeft;
 
-            if (outLeft || outTop) {
+            if (outLeft || outTop || crossedBackTooMuch) {
                 deer.resetPosition(Gdx.graphics.getWidth() + 60, 0);
             }
         }
@@ -358,6 +364,8 @@ public class LogicManager {
             // El ciervo derriba al jugador (niña) hacia atrás
             if (deer.isMovingRight()) {
                 player.setX(player.getX() - 64);
+            } else {
+                player.setX(player.getX() + 64);
             }
             keepPlayerInsideScreen();
 
