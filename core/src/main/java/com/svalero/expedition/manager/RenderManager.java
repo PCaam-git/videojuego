@@ -52,6 +52,10 @@ public class RenderManager {
             font.draw(batch, "+25 puntos", 50, 40);
         }
 
+        if (logicManager.getSupplyUnavailableMessageTimer() > 0) {
+            font.draw(batch, "Todavía no puedes pedir ayuda a Frodo", 50, 55);
+        }
+
         // Representación visual del jugador
         batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
 

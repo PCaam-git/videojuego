@@ -29,11 +29,13 @@ public class LogicManager {
     private final Guardian guardian;
     private final Deer deer;
     private final ScoreItem scoreItem;
+        // timers
     private float guardianDamageTimer; // tiempo de espera entre daños consecutivos.
     private float deerDamageTimer; //tiempo de espera entre daños consecutivos
     private float previousPlayerX;
     private float scoreMessageTimer;
     private float supplyCooldownTimer;
+    private float supplyUnavailableMessageTimer; // Mensaje ayuda de Frodo no disponible
 
 
     // Ubicación del jugador
@@ -51,6 +53,7 @@ public class LogicManager {
         guardianDamageTimer = 0;
         deerDamageTimer = 0;
         supplyCooldownTimer = 0;
+        supplyUnavailableMessageTimer = 0;
         previousPlayerX = player.getX();
     }
 
@@ -74,6 +77,7 @@ public class LogicManager {
         updateDeerDamageTimer(delta);
         updateScoreMessageTimer(delta);
         updateSupplyCooldownTimer(delta);
+        updateSupplyUnavailableMessageTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
@@ -122,6 +126,8 @@ public class LogicManager {
 
             if (playerNeedsEnergy && supplyAvailable && supplyNotAlreadyCalled) {
                 supply.setCalled(true);
+            } else {
+                supplyUnavailableMessageTimer = 1.5f;
             }
         }
     }
@@ -207,6 +213,12 @@ public class LogicManager {
     private void updateSupplyCooldownTimer(float delta) {
         if (supplyCooldownTimer > 0) {
             supplyCooldownTimer -= delta;
+        }
+    }
+
+    public void updateSupplyUnavailableMessageTimer(float delta) {
+        if (supplyUnavailableMessageTimer > 0) {
+            supplyUnavailableMessageTimer -= delta;
         }
     }
 
@@ -507,6 +519,10 @@ public class LogicManager {
 
     public float getSupplyCooldownTimer() {
         return supplyCooldownTimer;
+    }
+
+    public float getSupplyUnavailableMessageTimer() {
+        return supplyUnavailableMessageTimer;
     }
 
     public boolean isGameOver() {
