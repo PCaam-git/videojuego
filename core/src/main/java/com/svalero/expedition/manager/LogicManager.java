@@ -270,8 +270,9 @@ public class LogicManager {
         boolean collisionY = player.getY() < guardian.getY() + guardian.getHeight()
             && player.getY() + player.getHeight() > guardian.getY();
 
+        // el oso quita una vida
         if (collisionX && collisionY && guardianDamageTimer <= 0) {
-            player.setEnergy(player.getEnergy() - 10);
+            player.loseLife();
 
             // Activa de un segundo de impacto
             guardianDamageTimer = 1f;
@@ -355,8 +356,10 @@ public class LogicManager {
         boolean collisionY = player.getY() < deer.getY() + deer.getHeight()
             && player.getY() + player.getHeight() > deer.getY();
 
+        // el ciervo quita el 50% de la energía
         if (collisionX && collisionY && deerDamageTimer <= 0) {
-            player.setEnergy(player.getEnergy() - 10);
+            int damage = player.getEnergy() / 2;
+            player.setEnergy(player.getEnergy() - damage);
 
             // Activa de un segundo de impacto
             deerDamageTimer = 1f;
