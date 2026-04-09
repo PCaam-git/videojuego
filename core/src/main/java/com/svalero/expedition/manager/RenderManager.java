@@ -57,7 +57,11 @@ public class RenderManager {
         }
 
         if (logicManager.getSupplyHealMessageTimer() > 0) {
-            font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 50, 100);
+            font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 50, 40);
+        }
+
+        if (logicManager.getDeerHitMessageTimer() > 0) {
+            font.draw(batch, "¡Te has chocado con el asustado ciervo!", 50, 100);
         }
 
         // Representación visual del jugador

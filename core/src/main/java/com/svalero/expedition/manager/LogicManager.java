@@ -38,6 +38,7 @@ public class LogicManager {
     private float supplyUnavailableMessageTimer; // Mensaje ayuda de Frodo no disponible
     private float supplyHealMessageTimer;
     private int lastSupplyHealAmount;
+    private float deerHitMessageTimer;
 
 
     // Ubicación del jugador
@@ -58,6 +59,7 @@ public class LogicManager {
         supplyUnavailableMessageTimer = 0;
         supplyHealMessageTimer = 0;
         lastSupplyHealAmount = 0;
+        deerHitMessageTimer = 0;
         previousPlayerX = player.getX();
     }
 
@@ -83,6 +85,7 @@ public class LogicManager {
         updateSupplyCooldownTimer(delta);
         updateSupplyUnavailableMessageTimer(delta);
         updateSupplyHealMessageTimer(delta);
+        updateDeerHitMessageTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
@@ -464,6 +467,7 @@ public class LogicManager {
 
             // Activa de un segundo tras impacto
             deerDamageTimer = 1f;
+            deerHitMessageTimer = 1.5f;
 
             // El ciervo derriba al jugador (niña) hacia atrás
             if (deer.isMovingRight()) {
@@ -477,6 +481,12 @@ public class LogicManager {
             supply.setX(player.getX() + 64);
             supply.setY(player.getY());
             supply.setCalled(false);
+        }
+    }
+
+    private void updateDeerHitMessageTimer(float delta) {
+        if (deerHitMessageTimer > 0) {
+            deerHitMessageTimer -= delta;
         }
     }
 
@@ -547,6 +557,10 @@ public class LogicManager {
 
     public int getLastSupplyHealAmount() {
         return lastSupplyHealAmount;
+    }
+
+    public float getDeerHitMessageTimer() {
+        return deerHitMessageTimer;
     }
 
     public boolean isGameOver() {
