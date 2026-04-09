@@ -44,7 +44,6 @@ public class RenderManager {
         font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 350);
         font.draw(batch, "Nivel: 1", 50, 320);
 
-
         if (logicManager.getGuardianDamageTimer() > 0) {
             font.draw(batch, "¡El oso te ha atacado!", 50, 70);
         }

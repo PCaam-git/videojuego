@@ -17,6 +17,11 @@ public class LogicManager {
     private static final float PLAYER_START_Y = 150;
     private static final float SUPPLY_START_X = 36;
     private static final float SUPPLY_START_Y = 100;
+    private static final int SUPPLY_HEALTH_AMOUNT = 20;
+    private static final float SUPPLY_CALL_COOLDOWN = 15f;
+    private static final float SUPPLY_FOLLOW_EXTRA_DISTANCE = 32f;
+    private static final float SUPPLY_CALL_SPEED = 90f;
+    private static final float SUPPLY_FOLLOW_SPEED = 70f;
 
     private final Player player;
     private final Relic relic;
@@ -24,10 +29,11 @@ public class LogicManager {
     private final Guardian guardian;
     private final Deer deer;
     private final ScoreItem scoreItem;
-    private float guardianDamageTimer; // tiempo de espera entre daños consecutivos
+    private float guardianDamageTimer; // tiempo de espera entre daños consecutivos.
     private float deerDamageTimer; //tiempo de espera entre daños consecutivos
     private float previousPlayerX;
     private float scoreMessageTimer;
+    private float supplyCooldownTimer;
 
 
     // Ubicación del jugador
@@ -44,6 +50,7 @@ public class LogicManager {
 
         guardianDamageTimer = 0;
         deerDamageTimer = 0;
+        supplyCooldownTimer = 0;
         previousPlayerX = player.getX();
     }
 
@@ -66,6 +73,7 @@ public class LogicManager {
         updateGuardianDamageTimer(delta);
         updateDeerDamageTimer(delta);
         updateScoreMessageTimer(delta);
+        updateSupplyCooldownTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
@@ -106,9 +114,15 @@ public class LogicManager {
             player.setDirectionY(-1);
         }
 
-        // Llamada supply
+        // Llamada a Frodo solo si necesita curar y no está en espera
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
-            supply.setCalled(true);
+            boolean playerNeedsEnergy = player.getEnergy() < player.getMaxEnergy();
+            boolean supplyAvailable = supplyCooldownTimer <= 0;
+            boolean supplyNotAlreadyCalled = !supply.isCalled();
+
+            if (playerNeedsEnergy && supplyAvailable && supplyNotAlreadyCalled) {
+                supply.setCalled(true);
+            }
         }
     }
 
@@ -190,6 +204,12 @@ public class LogicManager {
 
     // --- FRODO ---
 
+    private void updateSupplyCooldownTimer(float delta) {
+        if (supplyCooldownTimer > 0) {
+            supplyCooldownTimer -= delta;
+        }
+    }
+
     private void moveSupply(float delta) {
         float targetX;
         float targetY;
@@ -201,7 +221,7 @@ public class LogicManager {
         } else {
             // Posiciones posibles de acompañamiento a 64 px para evitar la sobreposición:
             // izquierda, derecha, abajo y arriba
-            float followDistance = supply.getFollowDistance();
+            float followDistance = supply.getFollowDistance() + SUPPLY_FOLLOW_EXTRA_DISTANCE;
 
             float[][] candidatePositions = {
                 {player.getX() - followDistance, player.getY()}, // izquierda
@@ -254,7 +274,12 @@ public class LogicManager {
         float directionX = distanciaX / distance;
         float directionY = distanciaY / distance;
 
-        float speed = 120f;
+        float speed;
+        if (supply.isCalled()) {
+            speed = SUPPLY_CALL_SPEED;
+        } else {
+            speed = SUPPLY_FOLLOW_SPEED;
+        }
 
         supply.setX(supply.getX() + directionX * speed * delta);
         supply.setY(supply.getY() + directionY * speed * delta);
@@ -272,7 +297,10 @@ public class LogicManager {
             && player.getY() + player.getHeight() > supply.getY();
 
         if (collisionX && collisionY) {
-            player.setEnergy(player.getEnergy() + 25);
+            player.setEnergy(player.getEnergy() + SUPPLY_HEALTH_AMOUNT);
+
+            // Frodo entra en espera tras curar a Emily
+            supplyCooldownTimer = SUPPLY_CALL_COOLDOWN;
 
             // Frodo deja de estar en modo llamada
             supply.setCalled(false);
@@ -475,6 +503,10 @@ public class LogicManager {
 
     public float getScoreMessageTimer() {
         return scoreMessageTimer;
+    }
+
+    public float getSupplyCooldownTimer() {
+        return supplyCooldownTimer;
     }
 
     public boolean isGameOver() {
