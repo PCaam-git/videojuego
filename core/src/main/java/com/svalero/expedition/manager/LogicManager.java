@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Graphics;
 
+import com.sun.source.tree.BreakTree;
 import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.Supply;
@@ -45,6 +46,7 @@ public class LogicManager {
     private float supplyHealMessageTimer;
     private int lastSupplyHealAmount;
     private float deerHitMessageTimer;
+    private float immunityMessageTimer;
 
 
     // Ubicación del jugador
@@ -68,6 +70,7 @@ public class LogicManager {
         supplyHealMessageTimer = 0;
         lastSupplyHealAmount = 0;
         deerHitMessageTimer = 0;
+        immunityMessageTimer = 0;
         previousPlayerX = player.getX();
     }
 
@@ -95,6 +98,7 @@ public class LogicManager {
         updateSupplyHealMessageTimer(delta);
         updateDeerHitMessageTimer(delta);
         updateImmunityTimer(delta);
+        updateImmunityMessageTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
@@ -235,6 +239,12 @@ public class LogicManager {
         }
     }
 
+    private void updateImmunityMessageTimer(float delta) {
+        if (immunityMessageTimer > 0) {
+            immunityMessageTimer -= delta;
+        }
+    }
+
     private void checkImmunityItemCollision() {
         if (immunityItem.isCollected()) {
             return;
@@ -249,6 +259,7 @@ public class LogicManager {
         if (collisionX && collisionY) {
             immunityItem.setCollected(true);
             immunityTimer = IMMUNITY_DURATION;
+            immunityMessageTimer = 1.5f;
         }
     }
 
@@ -602,6 +613,10 @@ public class LogicManager {
 
     public float getDeerHitMessageTimer() {
         return deerHitMessageTimer;
+    }
+
+    public float getImmunityMessageTimer() {
+        return immunityMessageTimer;
     }
 
 

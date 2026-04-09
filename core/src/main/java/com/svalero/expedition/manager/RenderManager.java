@@ -67,6 +67,10 @@ public class RenderManager {
             font.draw(batch, "¡Te has chocado con el asustado ciervo!", 50, 100);
         }
 
+        if (logicManager.getImmunityMessageTimer() > 0) {
+            font.draw(batch, "¡SUERTE! Tienes 5s de inmunidad", 50, 100);
+        }
+
         // Representación visual del jugador
         batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
 
