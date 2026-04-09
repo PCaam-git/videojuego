@@ -8,6 +8,7 @@ public class Player extends Character{
     private int score;
     private float directionX;
     private float directionY;
+    private float speedMultiplier;
     private float width;
     private float height;
 
@@ -21,13 +22,14 @@ public class Player extends Character{
         this.directionY = 0;
         this.width = 32;
         this.height = 48;
+        this.speedMultiplier = 1f;
     }
 
     @Override
     public void update(float delta) {
         // Actualiza la posición del jugador en función de la dirección marcada
-        x += directionX * speed * delta;
-        y += directionY * speed * delta;
+        x += directionX * speed * speedMultiplier * delta;
+        y += directionY * speed * speedMultiplier * delta;
     }
 
     public int getEnergy() {
@@ -96,5 +98,9 @@ public class Player extends Character{
 
     public void setY(float y) {
         this.y = y;
+    }
+
+    public void setSpeedMultiplier(float speedMultiplier) {
+        this.speedMultiplier = speedMultiplier;
     }
 }

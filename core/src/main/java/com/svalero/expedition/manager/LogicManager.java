@@ -4,41 +4,86 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Graphics;
 
+import com.sun.source.tree.BreakTree;
 import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
 import com.svalero.expedition.domain.Deer;
+import com.svalero.expedition.domain.ImmunityItem;
+import com.svalero.expedition.domain.ScoreItem;
+import com.svalero.expedition.domain.PoisonItem;
 
 public class LogicManager {
 
     private static final float PLAYER_START_X = 100;
     private static final float PLAYER_START_Y = 150;
+
     private static final float SUPPLY_START_X = 36;
     private static final float SUPPLY_START_Y = 100;
+    private static final int SUPPLY_HEALTH_AMOUNT = 20;
+    private static final float SUPPLY_CALL_COOLDOWN = 15f;
+    private static final float SUPPLY_FOLLOW_EXTRA_DISTANCE = 32f;
+    private static final float SUPPLY_CALL_SPEED = 90f;
+    private static final float SUPPLY_FOLLOW_SPEED = 70f;
+
+    private static final float IMMUNITY_DURATION = 5f;
+
+    private static final float POISON_DURATION = 7f;
+    private static final float POISON_SPEED_FACTOR = 0.2f;
 
     private final Player player;
     private final Relic relic;
     private final Supply supply;
     private final Guardian guardian;
     private final Deer deer;
-    private float guardianDamageTimer; // tiempo de espera entre daños consecutivos
+    private final ScoreItem scoreItem;
+    private final ImmunityItem immunityItem;
+    private final PoisonItem poisonItem;
+
+
+        // timers
+    private float guardianDamageTimer; // tiempo de espera entre daños consecutivos.
     private float deerDamageTimer; //tiempo de espera entre daños consecutivos
     private float previousPlayerX;
+    private float scoreMessageTimer;
+    private float supplyCooldownTimer;
+    private float supplyUnavailableMessageTimer; // Mensaje ayuda de Frodo no disponible
+    private float supplyHealMessageTimer;
+    private int lastSupplyHealAmount;
+    private float deerHitMessageTimer;
+    private float immunityTimer;
+    private float immunityMessageTimer;
+    private float poisonTimer;
+    private float poisonMessageTimer;
 
 
     // Ubicación del jugador
     public LogicManager() {
         player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
         relic = new Relic(600, 220);
+        scoreItem = new ScoreItem(320, 220, 24, 24, 25);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 300);
+        immunityItem = new ImmunityItem(200, 300, 24, 24);
+        poisonItem = new PoisonItem(400, 300, 24, 24);
+        immunityTimer = 0;
+        poisonTimer = 0;
+        scoreMessageTimer = 0;
+        poisonMessageTimer = 0;
 
         // El ciervo empieza fuera de pantalla por la izquierda, pero a la altura visible del borde superior
         deer = new Deer(-60, Gdx.graphics.getHeight() - 36, 260, 320);
 
         guardianDamageTimer = 0;
         deerDamageTimer = 0;
+        supplyCooldownTimer = 0;
+        supplyUnavailableMessageTimer = 0;
+        supplyHealMessageTimer = 0;
+        lastSupplyHealAmount = 0;
+        deerHitMessageTimer = 0;
+        immunityMessageTimer = 0;
+
         previousPlayerX = player.getX();
     }
 
@@ -47,7 +92,9 @@ public class LogicManager {
 
         // Si no hay impacto, la niña y el oso mantienen comportamiento normal
         if (guardianDamageTimer <= 0) {
-            player.update(delta); // mueve a la niña
+            float speedFactor = (poisonTimer > 0) ? POISON_SPEED_FACTOR : 1f;
+            player.setSpeedMultiplier(speedFactor);
+            player.update(delta);
             guardian.update(delta); // actualiza al oso
         }
 
@@ -60,13 +107,25 @@ public class LogicManager {
 
         updateGuardianDamageTimer(delta);
         updateDeerDamageTimer(delta);
+        updateScoreMessageTimer(delta);
+        updateSupplyCooldownTimer(delta);
+        updateSupplyUnavailableMessageTimer(delta);
+        updateSupplyHealMessageTimer(delta);
+        updateDeerHitMessageTimer(delta);
+        updateImmunityTimer(delta);
+        updateImmunityMessageTimer(delta);
+        updatePoisonTimer(delta);
+        updatePoisonMessageTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
         checkRelicCollision(); // comprueba si se ha llegado al premio
+        checkScoreItemCollision(); // comprueba si se ha llegado al item
         checkSupplyCollision(); // comprueba si Frodo ha alcanzado al personaje
         checkGuardianCollision(); // comprueba si el oso ha alcanzado al personaje
         checkDeerCollision();
+        checkImmunityItemCollision();
+        checkPoisonItemCollision();
         checkPlayerEnergy();
 
         previousPlayerX = player.getX();
@@ -99,9 +158,17 @@ public class LogicManager {
             player.setDirectionY(-1);
         }
 
-        // Llamada supply
+        // Llamada a Frodo solo si necesita curar y no está en espera
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
-            supply.setCalled(true);
+            boolean playerNeedsEnergy = player.getEnergy() < player.getMaxEnergy();
+            boolean supplyAvailable = supplyCooldownTimer <= 0;
+            boolean supplyNotAlreadyCalled = !supply.isCalled();
+
+            if (playerNeedsEnergy && supplyAvailable && supplyNotAlreadyCalled) {
+                supply.setCalled(true);
+            } else {
+                supplyUnavailableMessageTimer = 1.5f;
+            }
         }
     }
 
@@ -125,7 +192,7 @@ public class LogicManager {
         }
     }
 
-    // --- HUESO ---
+    // --- RELIQUIA ---
 
     private void checkRelicCollision() {
         if (relic.isCollected()) {
@@ -152,7 +219,117 @@ public class LogicManager {
         }
     }
 
+    // --- ITEM SCORE+ ---
+    private void checkScoreItemCollision() {
+        if (scoreItem.isCollected()) {
+            return;
+        }
+
+        if (guardianDamageTimer > 0) {
+            return;
+        }
+
+        boolean collisionX = player.getX() < scoreItem.getX() + scoreItem.getWidth()
+            && player.getX() + player.getWidth() > scoreItem.getX();
+
+        boolean collisionY = player.getY() < scoreItem.getY() + scoreItem.getHeight()
+            && player.getY() + player.getHeight() > scoreItem.getY();
+
+        if (collisionX && collisionY) {
+            scoreItem.setCollected(true);
+            player.setScore(player.getScore() + scoreItem.getScoreValue());
+            scoreMessageTimer = 1.5f; // muestra la puntuación 1.5s
+        }
+    }
+
+    private void updateScoreMessageTimer(float delta) {
+        if (scoreMessageTimer > 0) {
+            scoreMessageTimer -= delta;
+        }
+    }
+
+
+    // --- ITEM INMUNIDAD ---
+
+    private void updateImmunityTimer(float delta) {
+        if (immunityTimer > 0) {
+            immunityTimer -= delta;
+        }
+    }
+
+    private void updateImmunityMessageTimer(float delta) {
+        if (immunityMessageTimer > 0) {
+            immunityMessageTimer -= delta;
+        }
+    }
+
+    private void checkImmunityItemCollision() {
+        if (immunityItem.isCollected()) {
+            return;
+        }
+
+        boolean collisionX = player.getX() < immunityItem.getX() + immunityItem.getWidth()
+            && player.getX() + player.getWidth() > immunityItem.getX();
+
+        boolean collisionY = player.getY() < immunityItem.getY() + immunityItem.getHeight()
+            && player.getY() + player.getHeight() > immunityItem.getY();
+
+        if (collisionX && collisionY) {
+            immunityItem.setCollected(true);
+            immunityTimer = IMMUNITY_DURATION;
+            immunityMessageTimer = 1.5f;
+        }
+    }
+
+    // --- ITEM VENENO ---
+
+    private void updatePoisonTimer(float delta) {
+        if (poisonTimer > 0) {
+            poisonTimer -= delta;
+        }
+    }
+
+    private void updatePoisonMessageTimer(float delta) {
+        if (poisonMessageTimer > 0) {
+            poisonMessageTimer -= delta;
+        }
+    }
+
+    private void checkPoisonItemCollision() {
+        if (poisonItem.isCollected()) return;
+
+        boolean collisionX = player.getX() < poisonItem.getX() + poisonItem.getWidth()
+            && player.getX() + player.getWidth() > poisonItem.getX();
+
+        boolean collisionY = player.getY() < poisonItem.getY() + poisonItem.getHeight()
+            && player.getY() + player.getHeight() > poisonItem.getY();
+
+        if (collisionX && collisionY) {
+            poisonItem.setCollected(true);
+            poisonTimer = POISON_DURATION;
+            poisonMessageTimer = 1.5f;
+        }
+    }
+
     // --- FRODO ---
+
+    private void updateSupplyCooldownTimer(float delta) {
+        if (supplyCooldownTimer > 0) {
+            supplyCooldownTimer -= delta;
+        }
+    }
+
+    public void updateSupplyUnavailableMessageTimer(float delta) {
+        if (supplyUnavailableMessageTimer > 0) {
+            supplyUnavailableMessageTimer -= delta;
+        }
+    }
+
+    private void updateSupplyHealMessageTimer(float delta) {
+        if (supplyHealMessageTimer > 0 ) {
+            supplyHealMessageTimer -= delta;
+        }
+    }
 
     private void moveSupply(float delta) {
         float targetX;
@@ -165,7 +342,7 @@ public class LogicManager {
         } else {
             // Posiciones posibles de acompañamiento a 64 px para evitar la sobreposición:
             // izquierda, derecha, abajo y arriba
-            float followDistance = supply.getFollowDistance();
+            float followDistance = supply.getFollowDistance() + SUPPLY_FOLLOW_EXTRA_DISTANCE;
 
             float[][] candidatePositions = {
                 {player.getX() - followDistance, player.getY()}, // izquierda
@@ -218,7 +395,12 @@ public class LogicManager {
         float directionX = distanciaX / distance;
         float directionY = distanciaY / distance;
 
-        float speed = 120f;
+        float speed;
+        if (supply.isCalled()) {
+            speed = SUPPLY_CALL_SPEED;
+        } else {
+            speed = SUPPLY_FOLLOW_SPEED;
+        }
 
         supply.setX(supply.getX() + directionX * speed * delta);
         supply.setY(supply.getY() + directionY * speed * delta);
@@ -236,7 +418,15 @@ public class LogicManager {
             && player.getY() + player.getHeight() > supply.getY();
 
         if (collisionX && collisionY) {
-            player.setEnergy(player.getEnergy() + 25);
+            int previousEnergy = player.getEnergy();
+
+            player.setEnergy(player.getEnergy() + SUPPLY_HEALTH_AMOUNT);
+
+            lastSupplyHealAmount = player.getEnergy() - previousEnergy;
+            supplyHealMessageTimer = 1.5f;
+
+            // Frodo entra en espera tras curar a Emily
+            supplyCooldownTimer = SUPPLY_CALL_COOLDOWN;
 
             // Frodo deja de estar en modo llamada
             supply.setCalled(false);
@@ -271,11 +461,15 @@ public class LogicManager {
         boolean collisionY = player.getY() < guardian.getY() + guardian.getHeight()
             && player.getY() + player.getHeight() > guardian.getY();
 
-        // el oso quita una vida
-        if (collisionX && collisionY && guardianDamageTimer <= 0) {
+
+        if (collisionX && collisionY && guardianDamageTimer <= 0 && immunityTimer <= 0) {
+            // el oso quita una vida
             player.loseLife();
 
-            // Activa de un segundo de impacto
+            // El oso penaliza la puntuación
+            player.setScore(player.getScore() - 25);
+
+            // Activa de un segundo tras el impacto
             guardianDamageTimer = 1f;
 
             // Jugador (niña) vuelve a la salida
@@ -357,13 +551,18 @@ public class LogicManager {
         boolean collisionY = player.getY() < deer.getY() + deer.getHeight()
             && player.getY() + player.getHeight() > deer.getY();
 
-        // el ciervo quita el 50% de la energía
-        if (collisionX && collisionY && deerDamageTimer <= 0) {
+
+        if (collisionX && collisionY && deerDamageTimer <= 0 && immunityTimer <=0) {
+            // el ciervo quita el 50% de la energía disponible
             int damage = player.getEnergy() / 2;
             player.setEnergy(player.getEnergy() - damage);
 
-            // Activa de un segundo de impacto
+            // El ciervo también penaliza la puntuación
+            player.setScore(player.getScore() - 15);
+
+            // Activa de un segundo tras impacto
             deerDamageTimer = 1f;
+            deerHitMessageTimer = 1.5f;
 
             // El ciervo derriba al jugador (niña) hacia atrás
             if (deer.isMovingRight()) {
@@ -377,6 +576,12 @@ public class LogicManager {
             supply.setX(player.getX() + 64);
             supply.setY(player.getY());
             supply.setCalled(false);
+        }
+    }
+
+    private void updateDeerHitMessageTimer(float delta) {
+        if (deerHitMessageTimer > 0) {
+            deerHitMessageTimer -= delta;
         }
     }
 
@@ -409,6 +614,10 @@ public class LogicManager {
         return relic;
     }
 
+    public ScoreItem getScoreItem() {
+        return scoreItem;
+    }
+
     public Supply getSupply() {
         return supply;
     }
@@ -421,9 +630,50 @@ public class LogicManager {
         return deer;
     }
 
+    public ImmunityItem getImmunityItem() {
+        return immunityItem;
+    }
+
+    public PoisonItem getPoisonItem() {
+        return poisonItem;
+    }
+
     public float getGuardianDamageTimer() {
         return guardianDamageTimer;
     }
+
+    public float getScoreMessageTimer() {
+        return scoreMessageTimer;
+    }
+
+    public float getSupplyCooldownTimer() {
+        return supplyCooldownTimer;
+    }
+
+    public float getSupplyUnavailableMessageTimer() {
+        return supplyUnavailableMessageTimer;
+    }
+
+    public float getSupplyHealMessageTimer() {
+        return supplyHealMessageTimer;
+    }
+
+    public int getLastSupplyHealAmount() {
+        return lastSupplyHealAmount;
+    }
+
+    public float getDeerHitMessageTimer() {
+        return deerHitMessageTimer;
+    }
+
+    public float getImmunityMessageTimer() {
+        return immunityMessageTimer;
+    }
+
+    public float getPoisonMessageTimer() {
+        return poisonMessageTimer;
+    }
+
 
     public boolean isGameOver() {
         return player.getLives() <= 0;

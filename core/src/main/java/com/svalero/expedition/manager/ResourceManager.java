@@ -12,9 +12,12 @@ public class ResourceManager {
     public static void loadAllResources() {
 
         manager.load("player/player_idle.png", Texture.class);
+        manager.load("items/egg_item.png", Texture.class);
         manager.load("dog/dog_idle.png", Texture.class);
         manager.load("bear/bear_idle.png", Texture.class);
         manager.load("deer/deer_walk_4.png", Texture.class);
+        manager.load("items/apple_item.png", Texture.class);
+        manager.load("items/poison_item.png", Texture.class);
 
         manager.finishLoading();
     }
