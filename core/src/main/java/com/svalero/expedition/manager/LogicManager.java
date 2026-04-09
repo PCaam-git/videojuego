@@ -428,4 +428,8 @@ public class LogicManager {
     public boolean isGameOver() {
         return player.getLives() <= 0;
     }
+
+    public boolean isLevelCompleted() {
+        return relic.isCollected();
+    }
 }
