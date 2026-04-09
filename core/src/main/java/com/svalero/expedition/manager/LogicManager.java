@@ -67,6 +67,7 @@ public class LogicManager {
         checkSupplyCollision(); // comprueba si Frodo ha alcanzado al personaje
         checkGuardianCollision(); // comprueba si el oso ha alcanzado al personaje
         checkDeerCollision();
+        checkPlayerEnergy();
 
         previousPlayerX = player.getX();
     }
@@ -377,6 +378,27 @@ public class LogicManager {
             supply.setY(player.getY());
             supply.setCalled(false);
         }
+    }
+
+    private void checkPlayerEnergy() {
+        if (player.getEnergy() > 0) {
+            return;
+        }
+
+        // pierde una vida
+        player.loseLife();
+
+        // recupera toda la energía
+        player.setEnergy(player.getMaxEnergy());
+
+        // Se reinicia la posición del jugador
+        player.setX(PLAYER_START_X);
+        player.setY(PLAYER_START_Y);
+
+        // Se reinicia la posición de Frodo
+        supply.setX(SUPPLY_START_X);
+        supply.setY(SUPPLY_START_Y);
+        supply.setCalled(false);
     }
 
     public Player getPlayer() {
