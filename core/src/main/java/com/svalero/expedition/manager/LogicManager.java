@@ -27,6 +27,7 @@ public class LogicManager {
     private float guardianDamageTimer; // tiempo de espera entre daños consecutivos
     private float deerDamageTimer; //tiempo de espera entre daños consecutivos
     private float previousPlayerX;
+    private float scoreMessageTimer;
 
 
     // Ubicación del jugador
@@ -36,6 +37,7 @@ public class LogicManager {
         scoreItem = new ScoreItem(320, 220, 24, 24, 25);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 300);
+        scoreMessageTimer = 0;
 
         // El ciervo empieza fuera de pantalla por la izquierda, pero a la altura visible del borde superior
         deer = new Deer(-60, Gdx.graphics.getHeight() - 36, 260, 320);
@@ -63,6 +65,7 @@ public class LogicManager {
 
         updateGuardianDamageTimer(delta);
         updateDeerDamageTimer(delta);
+        updateScoreMessageTimer(delta);
 
         keepPlayerInsideScreen(); // corrige la posición para que no se salga de los bordes
         checkGuardianBarrier(); // impide que la niña cruce la barrera del guardián
@@ -175,6 +178,13 @@ public class LogicManager {
         if (collisionX && collisionY) {
             scoreItem.setCollected(true);
             player.setScore(player.getScore() + scoreItem.getScoreValue());
+            scoreMessageTimer = 1.5f; // muestra la puntuación 1.5s
+        }
+    }
+
+    private void updateScoreMessageTimer(float delta) {
+        if (scoreMessageTimer > 0) {
+            scoreMessageTimer -= delta;
         }
     }
 
@@ -461,6 +471,10 @@ public class LogicManager {
 
     public float getGuardianDamageTimer() {
         return guardianDamageTimer;
+    }
+
+    public float getScoreMessageTimer() {
+        return scoreMessageTimer;
     }
 
     public boolean isGameOver() {

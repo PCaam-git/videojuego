@@ -49,6 +49,10 @@ public class RenderManager {
             font.draw(batch, "¡El oso te ha atacado!", 50, 70);
         }
 
+        if (logicManager.getScoreMessageTimer() > 0) {
+            font.draw(batch, "+25 puntos", 50, 40);
+        }
+
         // Representación visual del jugador
         batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
 
