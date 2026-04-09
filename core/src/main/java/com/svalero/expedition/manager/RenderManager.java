@@ -11,6 +11,7 @@ import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
 import com.svalero.expedition.domain.Deer;
 import com.svalero.expedition.domain.ImmunityItem;
+import com.svalero.expedition.domain.PoisonItem;
 
 public class RenderManager {
 
@@ -23,6 +24,7 @@ public class RenderManager {
     private final Texture guardianTexture;
     private final Texture deerTexture;
     private final Texture immunityItemTexture;
+    private final Texture poisonItemTexture;
 
     public RenderManager(SpriteBatch batch, LogicManager logicManager) {
         this.batch = batch;
@@ -34,6 +36,7 @@ public class RenderManager {
         this.guardianTexture = ResourceManager.getTexture("bear/bear_idle.png");
         this.deerTexture = ResourceManager.getTexture("deer/deer_walk_4.png");
         this.immunityItemTexture = ResourceManager.getTexture("items/apple_item.png");
+        this.poisonItemTexture = ResourceManager.getTexture("items/poison_item.png");
     }
 
     public void render() {
@@ -71,6 +74,10 @@ public class RenderManager {
             font.draw(batch, "¡SUERTE! Tienes 5s de inmunidad", 50, 100);
         }
 
+        if (logicManager.getPoisonMessageTimer() > 0) {
+            font.draw(batch, "Oh, oh! Serás más lenta durante los próximos 5s", 50, 100);
+        }
+
         // Representación visual del jugador
         batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
 
@@ -88,6 +95,11 @@ public class RenderManager {
         ImmunityItem immunityItem = logicManager.getImmunityItem();
         if (!immunityItem.isCollected()) {
             batch.draw(immunityItemTexture, immunityItem.getX(), immunityItem.getY(), immunityItem.getWidth(), immunityItem.getHeight());
+        }
+
+        PoisonItem poisonItem = logicManager.getPoisonItem();
+        if (!poisonItem.isCollected()) {
+            batch.draw(poisonItemTexture, poisonItem.getX(), poisonItem.getY(), poisonItem.getWidth(), poisonItem.getHeight());
         }
 
         Supply supply = logicManager.getSupply();
