@@ -3,14 +3,12 @@ package com.svalero.expedition.manager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Graphics;
+import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.math.Rectangle;
 
-import com.sun.source.tree.BreakTree;
 import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.Supply;
@@ -134,8 +132,6 @@ public class LogicManager {
         checkPoisonItemCollision();
         checkPlayerEnergy();
 
-        loadMapObjects();
-
         previousPlayerX = player.getX();
     }
 
@@ -180,26 +176,27 @@ public class LogicManager {
         }
     }
 
-    private void loadMapObjects() {
+    public void loadMapObjects(MapLayer objectsLayer) {
 
-        TiledMap map = new TmxMapLoader().load("level_01/mapa_nivel_01.tmx");
+        if(objectsLayer == null) {
+            return;
+        }
 
-        MapLayer logicLayer = map.getLayers().get("Logica");
-        MapObjects objects = logicLayer.getObjects();
+        MapObjects objects = objectsLayer.getObjects();
 
-        for (RectangleMapObject object : objects.getByType(RectangleMapObject.class)) {
-
-            Rectangle rect = object.getRectangle();
+        for (MapObject object : objects) {
             String type = object.getProperties().get("type", String.class);
 
-            if (type == null) continue;
+            if (type == null) {
+                continue;
+            }
 
-            float x = rect.x;
-            float y = rect.y;
+            float x = object.getProperties().get("x", Float.class);
+            float y = object.getProperties().get("y", Float.class);
 
             switch (type) {
 
-                case "start":
+                case "player":
                     player.setX(x);
                     player.setY(y);
                     break;

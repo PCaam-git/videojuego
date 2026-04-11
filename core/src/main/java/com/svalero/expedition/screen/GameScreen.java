@@ -4,45 +4,38 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import com.svalero.expedition.ExpeditionGame;
-import com.svalero.expedition.manager.ConfigurationManager;
-import com.svalero.expedition.manager.LogicManager;
-import com.svalero.expedition.manager.RenderManager;
-import com.svalero.expedition.manager.ResourceManager;
+import com.svalero.expedition.manager.*;
 
 
 public class GameScreen implements Screen {
 
+    //TO DO. Revisar tamaño mapa
+    private static final float MAP_SCALE = 1f;
+
     private final ExpeditionGame game;
     private final ConfigurationManager configurationManager;
     private final LogicManager logicManager; // actualiza el estado del juego
+    private final LevelManager levelManager;
     private RenderManager renderManager; // responsable del dibujo
-    private final SpriteBatch batch;
-
-    private TiledMap tiledMap;
-    private OrthogonalTiledMapRenderer mapRenderer;
     private OrthographicCamera camera;
 
     public GameScreen(ExpeditionGame game) {
         this.game = game;
         this.configurationManager = new ConfigurationManager();
         this.logicManager = new LogicManager();
-        this.batch = new SpriteBatch();
+        this.levelManager = new LevelManager();
     }
 
     @Override
     public void show() {
         ResourceManager.loadAllResources();
-        this.renderManager = new RenderManager(batch, logicManager);
 
-        tiledMap = new TmxMapLoader().load("level_01/mapa_nivel_01.tmx");
-        mapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
+        levelManager.loadCurrentLevel();
+        logicManager.loadMapObjects(levelManager.getObjectsLayer());
+        this.renderManager = new RenderManager(levelManager.getBatch(), logicManager);
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -67,8 +60,8 @@ public class GameScreen implements Screen {
             return;
         }
 
-        mapRenderer.setView(camera);
-        mapRenderer.render();
+        levelManager.getMapRenderer().setView(camera);
+        levelManager.getMapRenderer().render();
 
         renderManager.render();
 
@@ -101,9 +94,7 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         renderManager.dispose();
-        mapRenderer.dispose();
-        tiledMap.dispose();
-        batch.dispose();
+        levelManager.dispose();
         ResourceManager.dispose();
     }
 }
