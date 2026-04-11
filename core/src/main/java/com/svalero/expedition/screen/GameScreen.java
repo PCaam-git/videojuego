@@ -3,7 +3,6 @@ package com.svalero.expedition.screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import com.svalero.expedition.ExpeditionGame;
@@ -12,15 +11,12 @@ import com.svalero.expedition.manager.*;
 
 public class GameScreen implements Screen {
 
-    //TO DO. Revisar tamaño mapa
-    private static final float MAP_SCALE = 1f;
-
     private final ExpeditionGame game;
     private final ConfigurationManager configurationManager;
     private final LogicManager logicManager; // actualiza el estado del juego
     private final LevelManager levelManager;
     private RenderManager renderManager; // responsable del dibujo
-    private OrthographicCamera camera;
+    private CameraManager cameraManager;
 
     public GameScreen(ExpeditionGame game) {
         this.game = game;
@@ -37,9 +33,8 @@ public class GameScreen implements Screen {
         logicManager.loadMapObjects(levelManager.getObjectsLayer());
         this.renderManager = new RenderManager(levelManager.getBatch(), logicManager);
 
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.update();
+        cameraManager = new CameraManager(logicManager, levelManager);
+
     }
 
     @Override
@@ -60,9 +55,9 @@ public class GameScreen implements Screen {
             return;
         }
 
-        levelManager.getMapRenderer().setView(camera);
-        levelManager.getMapRenderer().render();
+        cameraManager.update();
 
+        levelManager.getMapRenderer().render();
         renderManager.render();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
@@ -72,8 +67,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        camera.setToOrtho(false, width, height);
-        camera.update();
+        cameraManager.resize(width, height);
     }
 
     @Override
