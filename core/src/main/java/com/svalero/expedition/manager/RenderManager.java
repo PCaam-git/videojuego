@@ -1,8 +1,10 @@
 package com.svalero.expedition.manager;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Matrix4;
 
 import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
@@ -18,6 +20,8 @@ public class RenderManager {
     private final SpriteBatch batch;
     private final LogicManager logicManager;
     private final BitmapFont font;
+    private final CameraManager cameraManager;
+    private final Matrix4 hudMatrix;
     private final Texture playerTexture;
     private final Texture scoreItemTexture;
     private final Texture supplyTexture;
@@ -26,10 +30,12 @@ public class RenderManager {
     private final Texture immunityItemTexture;
     private final Texture poisonItemTexture;
 
-    public RenderManager(SpriteBatch batch, LogicManager logicManager) {
+    public RenderManager(SpriteBatch batch, LogicManager logicManager, CameraManager cameraManager) {
         this.batch = batch;
         this.logicManager = logicManager;
         this.font = new BitmapFont();
+        this.cameraManager = cameraManager;
+        this.hudMatrix = new Matrix4();
         this.playerTexture = ResourceManager.getTexture("player/player_idle.png");
         this.scoreItemTexture = ResourceManager.getTexture("items/egg_item.png");
         this.supplyTexture = ResourceManager.getTexture("dog/dog_idle.png");
@@ -42,8 +48,49 @@ public class RenderManager {
     public void render() {
         Player player = logicManager.getPlayer();
 
+        hudMatrix.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        batch.setProjectionMatrix(cameraManager.getCamera().combined);
         batch.begin();
-        // Información básica de la pantalla de juego
+
+        batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
+
+        Relic relic = logicManager.getRelic();
+        if (!relic.isCollected()) {
+            batch.draw(playerTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+        }
+
+        ScoreItem scoreItem = logicManager.getScoreItem();
+        if (!scoreItem.isCollected()) {
+            batch.draw(scoreItemTexture, scoreItem.getX(), scoreItem.getY(), scoreItem.getWidth(), scoreItem.getHeight());
+        }
+
+        ImmunityItem immunityItem = logicManager.getImmunityItem();
+        if (!immunityItem.isCollected()) {
+            batch.draw(immunityItemTexture, immunityItem.getX(), immunityItem.getY(), immunityItem.getWidth(), immunityItem.getHeight());
+        }
+
+        PoisonItem poisonItem = logicManager.getPoisonItem();
+        if (!poisonItem.isCollected()) {
+            batch.draw(poisonItemTexture, poisonItem.getX(), poisonItem.getY(), poisonItem.getWidth(), poisonItem.getHeight());
+        }
+
+        Supply supply = logicManager.getSupply();
+        batch.draw(supplyTexture, supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
+
+        Guardian guardian = logicManager.getGuardian();
+        batch.draw(guardianTexture, guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
+
+        Deer deer = logicManager.getDeer();
+        if (deer.isActive()) {
+            batch.draw(deerTexture, deer.getX(), deer.getY(), deer.getWidth(), deer.getHeight());
+        }
+
+        batch.end();
+
+        batch.setProjectionMatrix(hudMatrix);
+        batch.begin();
+
         font.draw(batch, "Pulsa ESC para volver al menú", 50, 460);
         font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 410);
         font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 380);
@@ -78,40 +125,6 @@ public class RenderManager {
             font.draw(batch, "Oh, oh! Serás más lenta durante los próximos 5s", 50, 100);
         }
 
-        // Representación visual del jugador
-        batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
-
-        Relic relic = logicManager.getRelic();
-
-        if (!relic.isCollected()) {
-            batch.draw(playerTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
-        }
-
-        ScoreItem scoreItem = logicManager.getScoreItem();
-        if(!scoreItem.isCollected()) {
-            batch.draw(scoreItemTexture, scoreItem.getX(), scoreItem.getY(), scoreItem.getWidth(), scoreItem.getHeight());
-        }
-
-        ImmunityItem immunityItem = logicManager.getImmunityItem();
-        if (!immunityItem.isCollected()) {
-            batch.draw(immunityItemTexture, immunityItem.getX(), immunityItem.getY(), immunityItem.getWidth(), immunityItem.getHeight());
-        }
-
-        PoisonItem poisonItem = logicManager.getPoisonItem();
-        if (!poisonItem.isCollected()) {
-            batch.draw(poisonItemTexture, poisonItem.getX(), poisonItem.getY(), poisonItem.getWidth(), poisonItem.getHeight());
-        }
-
-        Supply supply = logicManager.getSupply();
-        batch.draw(supplyTexture, supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
-
-        Guardian guardian = logicManager.getGuardian();
-        batch.draw(guardianTexture, guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
-
-        Deer deer = logicManager.getDeer();
-        if (deer.isActive()) {
-            batch.draw(deerTexture, deer.getX(), deer.getY(), deer.getWidth(), deer.getHeight());
-        }
         batch.end();
     }
 

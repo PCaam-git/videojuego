@@ -76,8 +76,16 @@ public class Player extends Character{
         this.score = score;
     }
 
+    public float getDirectionX() {
+        return directionX;
+    }
+
     public void setDirectionX(float directionX) {
         this.directionX = directionX;
+    }
+
+    public float getDirectionY() {
+        return directionY;
     }
 
     public void setDirectionY(float directionY) {

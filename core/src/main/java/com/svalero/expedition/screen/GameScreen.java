@@ -3,14 +3,10 @@ package com.svalero.expedition.screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import com.svalero.expedition.ExpeditionGame;
-import com.svalero.expedition.manager.ConfigurationManager;
-import com.svalero.expedition.manager.LogicManager;
-import com.svalero.expedition.manager.RenderManager;
-import com.svalero.expedition.manager.ResourceManager;
+import com.svalero.expedition.manager.*;
 
 
 public class GameScreen implements Screen {
@@ -18,20 +14,32 @@ public class GameScreen implements Screen {
     private final ExpeditionGame game;
     private final ConfigurationManager configurationManager;
     private final LogicManager logicManager; // actualiza el estado del juego
+    private final LevelManager levelManager;
     private RenderManager renderManager; // responsable del dibujo
-    private final SpriteBatch batch;
+    private CameraManager cameraManager;
 
     public GameScreen(ExpeditionGame game) {
         this.game = game;
         this.configurationManager = new ConfigurationManager();
         this.logicManager = new LogicManager();
-        this.batch = new SpriteBatch();
+        this.levelManager = new LevelManager();
     }
 
     @Override
     public void show() {
         ResourceManager.loadAllResources();
-        this.renderManager = new RenderManager(batch, logicManager);
+
+        levelManager.loadCurrentLevel();
+        logicManager.loadMapObjects(levelManager.getObjectsLayer());
+        logicManager.setWorldSize(levelManager.getWorldWidth(), levelManager.getWorldHeight());
+        logicManager.setCollisionLayer(
+            levelManager.getCollisionLayer(),
+            levelManager.getTileWidth(),
+            levelManager.getTileHeight()
+        );
+
+        cameraManager = new CameraManager(logicManager, levelManager);
+        this.renderManager = new RenderManager(levelManager.getBatch(), logicManager, cameraManager);
     }
 
     @Override
@@ -52,17 +60,19 @@ public class GameScreen implements Screen {
             return;
         }
 
+        cameraManager.update();
+
+        levelManager.getMapRenderer().render();
         renderManager.render();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new MainMenuScreen(game));
         }
-
     }
 
     @Override
     public void resize(int width, int height) {
-
+        cameraManager.resize(width, height);
     }
 
     @Override
@@ -83,8 +93,7 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         renderManager.dispose();
-        batch.dispose();
+        levelManager.dispose();
         ResourceManager.dispose();
-
     }
 }
