@@ -31,10 +31,15 @@ public class GameScreen implements Screen {
 
         levelManager.loadCurrentLevel();
         logicManager.loadMapObjects(levelManager.getObjectsLayer());
-        this.renderManager = new RenderManager(levelManager.getBatch(), logicManager);
+        logicManager.setWorldSize(levelManager.getWorldWidth(), levelManager.getWorldHeight());
+        logicManager.setCollisionLayer(
+            levelManager.getCollisionLayer(),
+            levelManager.getTileWidth(),
+            levelManager.getTileHeight()
+        );
 
         cameraManager = new CameraManager(logicManager, levelManager);
-
+        this.renderManager = new RenderManager(levelManager.getBatch(), logicManager, cameraManager);
     }
 
     @Override
