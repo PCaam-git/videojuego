@@ -43,6 +43,11 @@ public class MainMenuScreen implements Screen {
         font.draw(batch, "OBJETIVO DEL NIVEL 1", 80, 220);
         font.draw(batch, "Recupera el hueso y evita los peligros del camino.", 80, 190);
 
+        font.draw(batch, "OBJETOS DEL NIVEL", 80, 150);
+        font.draw(batch, "Huevo: +25 puntos", 80, 120);
+        font.draw(batch, "Manzana: inmunidad temporal", 80, 90);
+        font.draw(batch, "Veneno: ralentiza al personaje", 80, 60);
+
         font.draw(batch, "CONTROLES", 80, 140);
         font.draw(batch, "Flechas -> mover a la protagonista", 80, 110);
         font.draw(batch, "P -> llamar a Frodo", 80, 80);
