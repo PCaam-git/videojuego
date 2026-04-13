@@ -23,4 +23,8 @@ public class PoisonItem {
 
     public boolean isCollected() { return collected; }
     public void setCollected(boolean collected) { this.collected = collected; }
+
+    public void reset() {
+        this.collected = false;
+    }
 }

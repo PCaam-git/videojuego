@@ -2,8 +2,8 @@ package com.svalero.expedition.domain;
 
 public class Supply extends NPC {
 
-    private float width;
-    private float height;
+    private final float width;
+    private final float height;
     private boolean called;
     private float followDistance;
 
@@ -51,5 +51,11 @@ public class Supply extends NPC {
 
     public void setY(float y) {
         this.y = y;
+    }
+
+    public void reset(float startX, float startY) {
+        this.x = startX;
+        this.y = startY;
+        this.called = false;
     }
 }
