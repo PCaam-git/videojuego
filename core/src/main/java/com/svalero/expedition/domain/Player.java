@@ -6,6 +6,8 @@ public class Player extends Character{
     private int maxEnergy;
     private int lives;
     private int score;
+    private int immunityCollected;
+    private int poisonCollected;
     private float directionX;
     private float directionY;
     private float speedMultiplier;
@@ -18,6 +20,8 @@ public class Player extends Character{
         this.maxEnergy = energy;
         this.lives = lives;
         this.score = score;
+        this.immunityCollected = 0;
+        this.poisonCollected = 0;
         this.directionX = 0;
         this.directionY = 0;
         this.width = 32;
@@ -70,6 +74,22 @@ public class Player extends Character{
         if (lives > 0) {
             lives--;
         }
+    }
+
+    public void addImmunity() {
+        this.immunityCollected++;
+    }
+
+    public void addPoison() {
+        this.poisonCollected++;
+    }
+
+    public int getImmunityCollected() {
+        return immunityCollected;
+    }
+
+    public int getPoisonCollected() {
+        return poisonCollected;
     }
 
     public void setScore(int score) {

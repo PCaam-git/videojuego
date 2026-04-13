@@ -29,35 +29,41 @@ public class LogicManager {
     private static final float SUPPLY_CALL_SPEED = 90f;
     private static final float SUPPLY_FOLLOW_SPEED = 70f;
 
-    private static final float IMMUNITY_DURATION = 5f;
-
-    private static final float POISON_DURATION = 7f;
+    private static final float POISON_DURATION = 5f;
     private static final float POISON_SPEED_FACTOR = 0.2f;
 
     private final Player player;
     private Relic relic;
     private final Supply supply;
     private Guardian guardian;
-    private Deer deer;
+    private final Deer deer;
     private ScoreItem scoreItem;
     private ImmunityItem immunityItem;
     private PoisonItem poisonItem;
 
 
-        // timers
+    // timers
     private float guardianDamageTimer; // tiempo de espera entre daños consecutivos.
     private float deerDamageTimer; //tiempo de espera entre daños consecutivos
-    private float previousPlayerX;
     private float scoreMessageTimer;
     private float supplyCooldownTimer;
     private float supplyUnavailableMessageTimer; // Mensaje ayuda de Frodo no disponible
     private float supplyHealMessageTimer;
     private int lastSupplyHealAmount;
     private float deerHitMessageTimer;
-    private float immunityTimer;
     private float immunityMessageTimer;
     private float poisonTimer;
     private float poisonMessageTimer;
+    private float guardianDeathMessageTimer;
+    private boolean birdTriggered;
+
+    // posiciones iniciales cargadas desdeTiled
+    private float playerStartX;
+    private float playerStartY;
+    private float supplyStartX;
+    private float supplyStartY;
+    private float birdStartX;
+    private float birdStartY;
 
     private float worldWidth;
     private float worldHeight;
@@ -66,35 +72,42 @@ public class LogicManager {
     private float tileHeight;
 
 
-    // Ubicación del jugador
+    // Ubicación
     public LogicManager() {
         player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
-        relic = new Relic (600, 220);
+        relic = new Relic(600, 220);
         scoreItem = new ScoreItem(320, 220, 24, 24, 25);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 300);
         immunityItem = new ImmunityItem(200, 300, 24, 24);
         poisonItem = new PoisonItem(400, 300, 24, 24);
-        immunityTimer = 0;
-        poisonTimer = 0;
-        scoreMessageTimer = 0;
-        poisonMessageTimer = 0;
 
-        // El ciervo empieza fuera de pantalla por la izquierda, pero a la altura visible del borde superior
-        deer = new Deer(-60, Gdx.graphics.getHeight() - 36, 260, 320);
+        deer = new Deer(-60, Gdx.graphics.getHeight() - 36, 450, 320);
 
         guardianDamageTimer = 0;
         deerDamageTimer = 0;
+        scoreMessageTimer = 0;
         supplyCooldownTimer = 0;
         supplyUnavailableMessageTimer = 0;
         supplyHealMessageTimer = 0;
         lastSupplyHealAmount = 0;
         deerHitMessageTimer = 0;
         immunityMessageTimer = 0;
+        poisonTimer = 0;
+        poisonMessageTimer = 0;
+        guardianDeathMessageTimer = 0;
+        birdTriggered = false;
 
-        previousPlayerX = player.getX();
         worldWidth = Gdx.graphics.getWidth();
         worldHeight = Gdx.graphics.getHeight();
+
+        // Valores por defecto si el mapa no los sobrescribe
+        playerStartX = PLAYER_START_X;
+        playerStartY = PLAYER_START_Y;
+        supplyStartX = SUPPLY_START_X;
+        supplyStartY = SUPPLY_START_Y;
+        birdStartX = -60;
+        birdStartY = Gdx.graphics.getHeight() - 36;
     }
 
     // -- SETUP -- Métodos de configuración inicial
@@ -112,7 +125,7 @@ public class LogicManager {
 
     public void loadMapObjects(MapLayer objectsLayer) {
 
-        if(objectsLayer == null) {
+        if (objectsLayer == null) {
             System.err.println("ERROR: La capa 'Objects' es null. Asegúrate de que la capa en Tiled se llama exactamente 'Objects' (sensitive Case).");
             return;
         }
@@ -123,8 +136,12 @@ public class LogicManager {
 
             // Tratando de eliminar problema de incompatibilidad de nombre entre versiones
             String type = (String) object.getProperties().get("type");
-            if (type == null) type = (String) object.getProperties().get("class");
-            if (type == null) type = object.getName();
+            if (type == null) {
+                type = (String) object.getProperties().get("class");
+            }
+            if (type == null) {
+                type = object.getName();
+            }
 
             if (type == null) {
                 continue;
@@ -137,16 +154,23 @@ public class LogicManager {
                 continue;
             }
 
-            // también se aplica la escala 2f a las coordenadas de los objetos para un posicionamiento correcto
             float scale = 2f;
             float x = ((Number) propX).floatValue() * scale;
             float y = ((Number) propY).floatValue() * scale;
 
             switch (type) {
-
                 case "player":
                     player.setX(x);
                     player.setY(y);
+                    playerStartX = x;
+                    playerStartY = y;
+                    break;
+
+                case "supply":
+                    supply.setX(x);
+                    supply.setY(y);
+                    supplyStartX = x;
+                    supplyStartY = y;
                     break;
 
                 case "relic":
@@ -166,15 +190,11 @@ public class LogicManager {
                     break;
 
                 case "guardian":
-                    // propiedades de Tiled
                     Object propSpeed = object.getProperties().get("speed");
                     Object propMinY = object.getProperties().get("minY");
                     Object propMaxY = object.getProperties().get("maxY");
 
-                    // conversión de valores number/float
                     float speed = (propSpeed != null) ? ((Number) propSpeed).floatValue() : 100f;
-
-                    // minY y minX tambíen se multiplican por la escala (2f) para garantizar la posición definida
                     float minY = (propMinY != null) ? ((Number) propMinY).floatValue() * scale : 240 * scale;
                     float maxY = (propMaxY != null) ? ((Number) propMaxY).floatValue() * scale : 280 * scale;
 
@@ -182,6 +202,8 @@ public class LogicManager {
                     break;
 
                 case "deer":
+                    birdStartX = x;
+                    birdStartY = y;
                     deer.resetPosition(x, y);
                     break;
 
@@ -192,25 +214,11 @@ public class LogicManager {
         }
     }
 
+
     // --- CORE LOOP --- Lógica que se ejecuta continuamente
 
     public void update(float delta) {
-        handleInput(); // handleInput decide la dirección
-
-        // Si no hay impacto, la niña y el oso mantienen comportamiento normal
-        if (guardianDamageTimer <= 0) {
-            float speedFactor = (poisonTimer > 0) ? POISON_SPEED_FACTOR : 1f;
-            player.setSpeedMultiplier(speedFactor);
-            movePlayer(delta);
-            guardian.update(delta); // actualiza al oso
-        }
-
-        supply.update(delta); // actualiza al acompañante (Frodo)
-
-        moveSupply(delta);
-        checkDeerActivation(); // se decide si el ciervo se mueve
-        deer.update(delta); // el ciervo se mueve
-        resetDeerIfNeeded();
+        handleInput();
 
         updateGuardianDamageTimer(delta);
         updateDeerDamageTimer(delta);
@@ -219,35 +227,51 @@ public class LogicManager {
         updateSupplyUnavailableMessageTimer(delta);
         updateSupplyHealMessageTimer(delta);
         updateDeerHitMessageTimer(delta);
-        updateImmunityTimer(delta);
         updateImmunityMessageTimer(delta);
         updatePoisonTimer(delta);
         updatePoisonMessageTimer(delta);
+        updateGuardianDeathMessageTimer(delta);
 
-        keepPlayerInsideWorld(); // corrige la posición para que no se salga de los bordes del mapa
-        checkRelicCollision(); // comprueba si se ha llegado al premio
-        checkScoreItemCollision(); // comprueba si se ha llegado al item
-        checkSupplyCollision(); // comprueba si Frodo ha alcanzado al personaje
-        checkGuardianCollision(); // comprueba si el oso ha alcanzado al personaje
-        checkDeerCollision();
+        if (guardianDamageTimer <= 0 && deerDamageTimer <=0) {
+            float speedFactor = (poisonTimer > 0) ? POISON_SPEED_FACTOR : 1f;
+            player.setSpeedMultiplier(speedFactor);
+            movePlayer(delta);
+            guardian.update(delta);
+        }
+
+        supply.update(delta);
+        moveSupply(delta);
+
+        if (deer != null && deer.isActive()) {
+            // deer.setTarget(getPlayerHitboxCenterX(), getPlayerHitboxCenterY());
+            deer.update(delta);
+            checkDeerCollision();
+        }
+
+        resetDeerIfNeeded();
+
+        keepPlayerInsideWorld();
+        checkRelicCollision();
+        checkScoreItemCollision();
+        checkSupplyCollision();
+        checkGuardianCollision();
         checkImmunityItemCollision();
         checkPoisonItemCollision();
         checkPlayerEnergy();
-
-        previousPlayerX = player.getX();
     }
 
-    // --- HELPERS --- Médosos de apoyo al bucle principal
+    // --- HELPERS --- Métodos de apoyo al bucle principal
         // Ayudan directamente al movimiento y la física básica
 
     private void handleInput() {
 
         // Si la niña choca con el oso, no puede moverse ni llamar a Frodo
-        if (guardianDamageTimer > 0) {
+        if (guardianDamageTimer > 0 || deerDamageTimer > 0) {
             player.setDirectionX(0);
             player.setDirectionY(0);
             return;
         }
+
 
         // Se reinicia la dirección en cada frame
         player.setDirectionX(0);
@@ -291,7 +315,6 @@ public class LogicManager {
         // Movimiento en X
         player.setDirectionX(directionX);
         player.setDirectionY(0);
-
         player.update(delta);
         keepPlayerInsideWorld();
 
@@ -300,10 +323,8 @@ public class LogicManager {
         }
 
         // Movimiento en Y
-        player.setX(player.getX()); // mantiene X actual
         player.setDirectionX(0);
         player.setDirectionY(directionY);
-
         player.update(delta);
         keepPlayerInsideWorld();
 
@@ -314,6 +335,41 @@ public class LogicManager {
         // Restaurar direcciones
         player.setDirectionX(directionX);
         player.setDirectionY(directionY);
+    }
+
+    private void moveSupply(float delta) {
+        float targetX = player.getX();
+        float targetY = player.getY();
+
+        float distanceX = targetX - supply.getX();
+        float distanceY = targetY - supply.getY();
+        float distance = (float) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+        float stopDistance = supply.isCalled() ? 5f : supply.getFollowDistance() + SUPPLY_FOLLOW_EXTRA_DISTANCE;
+
+        if (distance < stopDistance) {
+            return;
+        }
+
+        float directionX = distanceX / distance;
+        float directionY = distanceY / distance;
+        float speed = supply.isCalled() ? SUPPLY_CALL_SPEED : SUPPLY_FOLLOW_SPEED;
+
+        supply.setX(supply.getX() + directionX * speed * delta);
+        supply.setY(supply.getY() + directionY * speed * delta);
+
+        if (supply.getX() < 0) {
+            supply.setX(0);
+        }
+        if (supply.getY() < 0) {
+            supply.setY(0);
+        }
+        if (supply.getX() + supply.getWidth() > worldWidth) {
+            supply.setX(worldWidth - supply.getWidth());
+        }
+        if (supply.getY() + supply.getHeight() > worldHeight) {
+            supply.setY(worldHeight - supply.getHeight());
+        }
     }
 
     // Establece límite del mundo para que el jugador no pueda sobrepasar el mapa
@@ -364,6 +420,14 @@ public class LogicManager {
 
     private float getPlayerHitboxTop() {
         return getPlayerHitboxBottom() + getPlayerHitboxHeight() - 1;
+    }
+
+    private float getPlayerHitboxCenterX() {
+        return getPlayerHitboxLeft() + getPlayerHitboxWidth() / 2f;
+    }
+
+    private float getPlayerHitboxCenterY() {
+        return getPlayerHitboxBottom() + getPlayerHitboxHeight() / 2f;
     }
 
     private boolean isPlayerCollidingWithTerrain() {
@@ -420,13 +484,6 @@ public class LogicManager {
         }
     }
 
-    // --- ITEM SCORE+ ---
-    private void updateScoreMessageTimer(float delta) {
-        if (scoreMessageTimer > 0) {
-            scoreMessageTimer -= delta;
-        }
-    }
-
     private void checkScoreItemCollision() {
         if (scoreItem.isCollected()) {
             return;
@@ -434,6 +491,19 @@ public class LogicManager {
 
         if (guardianDamageTimer > 0) {
             return;
+        }
+
+        boolean nearX = getPlayerHitboxLeft() < scoreItem.getX() + scoreItem.getWidth() + 80
+            && getPlayerHitboxRight() > scoreItem.getX() - 80;
+
+        boolean nearY = getPlayerHitboxBottom() < scoreItem.getY() + scoreItem.getHeight() + 80
+            && getPlayerHitboxTop() > scoreItem.getY() - 80;
+
+        if (nearX && nearY && !birdTriggered && deer != null && !deer.isActive()) {
+            activateBird();
+            birdTriggered = true;
+        } else if ((!nearX || !nearY) && deer != null && !deer.isActive()) {
+            birdTriggered = false;
         }
 
         boolean collisionX = getPlayerHitboxLeft() < scoreItem.getX() + scoreItem.getWidth()
@@ -445,21 +515,7 @@ public class LogicManager {
         if (collisionX && collisionY) {
             scoreItem.setCollected(true);
             player.setScore(player.getScore() + scoreItem.getScoreValue());
-            scoreMessageTimer = 1.5f; // muestra la puntuación 1.5s
-        }
-    }
-
-    // --- ITEM INMUNIDAD ---
-
-    private void updateImmunityTimer(float delta) {
-        if (immunityTimer > 0) {
-            immunityTimer -= delta;
-        }
-    }
-
-    private void updateImmunityMessageTimer(float delta) {
-        if (immunityMessageTimer > 0) {
-            immunityMessageTimer -= delta;
+            scoreMessageTimer = 1.5f;
         }
     }
 
@@ -468,36 +524,48 @@ public class LogicManager {
             return;
         }
 
-        boolean collisionX = getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth()
-            && getPlayerHitboxRight() > immunityItem.getX();
+        boolean nearX = getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth() + 80
+            && getPlayerHitboxRight() > immunityItem.getX() - 80;
 
-        boolean collisionY = getPlayerHitboxBottom() < immunityItem.getY() + immunityItem.getHeight()
-            && getPlayerHitboxTop() > immunityItem.getY();
+        boolean nearY = getPlayerHitboxBottom() < immunityItem.getY() + immunityItem.getHeight() + 80
+            && getPlayerHitboxTop() > immunityItem.getY() - 80;
+
+        if (nearX && nearY && !birdTriggered && deer != null && !deer.isActive()) {
+            activateBird();
+            birdTriggered = true;
+        } else if ((!nearX || !nearY) && deer != null && !deer.isActive()) {
+            birdTriggered = false;
+        }
+
+        boolean collisionX = getPlayerHitboxRight() > immunityItem.getX()
+            && getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth();
+
+        boolean collisionY = getPlayerHitboxTop() > immunityItem.getY()
+            && getPlayerHitboxBottom() < immunityItem.getY() + immunityItem.getHeight();
 
         if (collisionX && collisionY) {
             immunityItem.setCollected(true);
-            immunityTimer = IMMUNITY_DURATION;
+            player.addImmunity();
             immunityMessageTimer = 1.5f;
-        }
-    }
-
-    // --- ITEM VENENO ---
-
-    private void updatePoisonTimer(float delta) {
-        if (poisonTimer > 0) {
-            poisonTimer -= delta;
-        }
-    }
-
-    private void updatePoisonMessageTimer(float delta) {
-        if (poisonMessageTimer > 0) {
-            poisonMessageTimer -= delta;
         }
     }
 
     private void checkPoisonItemCollision() {
         if (poisonItem.isCollected()) {
             return;
+        }
+
+        boolean nearX = getPlayerHitboxLeft() < poisonItem.getX() + poisonItem.getWidth() + 40
+            && getPlayerHitboxRight() > poisonItem.getX() - 40;
+
+        boolean nearY = getPlayerHitboxBottom() < poisonItem.getY() + poisonItem.getHeight() + 40
+            && getPlayerHitboxTop() > poisonItem.getY() - 40;
+
+        if (nearX && nearY && !birdTriggered && deer != null && !deer.isActive()) {
+            activateBird();
+            birdTriggered = true;
+        } else if ((!nearX || !nearY) && deer != null && !deer.isActive()) {
+            birdTriggered = false;
         }
 
         boolean collisionX = getPlayerHitboxLeft() < poisonItem.getX() + poisonItem.getWidth()
@@ -510,102 +578,32 @@ public class LogicManager {
             poisonItem.setCollected(true);
             poisonTimer = POISON_DURATION;
             poisonMessageTimer = 1.5f;
+            player.addPoison();
         }
     }
 
-    // --- FRODO ---
-
-    private void updateSupplyCooldownTimer(float delta) {
-        if (supplyCooldownTimer > 0) {
-            supplyCooldownTimer -= delta;
-        }
-    }
-
-    public void updateSupplyUnavailableMessageTimer(float delta) {
-        if (supplyUnavailableMessageTimer > 0) {
-            supplyUnavailableMessageTimer -= delta;
-        }
-    }
-
-    private void updateSupplyHealMessageTimer(float delta) {
-        if (supplyHealMessageTimer > 0 ) {
-            supplyHealMessageTimer -= delta;
-        }
-    }
-
-    private void moveSupply(float delta) {
-        float targetX;
-        float targetY;
-
-        // Si se llama a Frodo, el objetivo es la posición de la niña
-        if (supply.isCalled()) {
-            targetX = player.getX();
-            targetY = player.getY();
-        } else {
-            // Posiciones posibles de acompañamiento a 64 px para evitar la sobreposición:
-            // izquierda, derecha, abajo y arriba
-            float followDistance = supply.getFollowDistance() + SUPPLY_FOLLOW_EXTRA_DISTANCE;
-
-            float[][] candidatePositions = {
-                {player.getX() - followDistance, player.getY()}, // izquierda
-                {player.getX() + followDistance, player.getY()}, // derecha
-                {player.getX(), player.getY() - followDistance}, // abajo
-                {player.getX(), player.getY() + followDistance}  // arriba
-            };
-
-            int bestIndex = -1;
-            float bestDistance = Float.MAX_VALUE;
-
-            for (int i = 0; i < candidatePositions.length; i++) {
-                float candidateX = candidatePositions[i][0];
-                float candidateY = candidatePositions[i][1];
-
-                boolean validX = candidateX >= 0 && candidateX + supply.getWidth() <= Gdx.graphics.getWidth();
-                boolean validY = candidateY >= 0 && candidateY + supply.getHeight() <= Gdx.graphics.getHeight();
-
-                if (!validX || !validY) {
-                    continue;
-                }
-
-                float distanciaX = candidateX - supply.getX();
-                float distanciaY = candidateY - supply.getY();
-                float distance = (float) Math.sqrt(distanciaX * distanciaX + distanciaY * distanciaY);
-
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    bestIndex = i;
-                }
-            }
-
-            if (bestIndex == -1) {
-                return;
-            }
-
-            targetX = candidatePositions[bestIndex][0];
-            targetY = candidatePositions[bestIndex][1];
-        }
-
-        float distanciaX = targetX - supply.getX();
-        float distanciaY = targetY - supply.getY();
-
-        float distance = (float) Math.sqrt(distanciaX * distanciaX + distanciaY * distanciaY);
-
-        if (distance < 5f) {
+    private void activateBird() {
+        if (deer == null || deer.isActive()) {
             return;
         }
 
-        float directionX = distanciaX / distance;
-        float directionY = distanciaY / distance;
+        float deerCollisionWidth = 28f;
+        float deerCollisionHeight = 28f;
 
-        float speed;
-        if (supply.isCalled()) {
-            speed = SUPPLY_CALL_SPEED;
-        } else {
-            speed = SUPPLY_FOLLOW_SPEED;
-        }
+        float playerHitboxLeft = getPlayerHitboxLeft();
+        float playerHitboxBottom = getPlayerHitboxBottom();
+        float playerHitboxWidth = getPlayerHitboxWidth();
+        float playerHitboxHeight = getPlayerHitboxHeight();
 
-        supply.setX(supply.getX() + directionX * speed * delta);
-        supply.setY(supply.getY() + directionY * speed * delta);
+        float targetX = playerHitboxLeft + (playerHitboxWidth - deerCollisionWidth) / 2f
+            - (deer.getWidth() - deerCollisionWidth) / 2f;
+
+        float targetY = playerHitboxBottom + (playerHitboxHeight - deerCollisionHeight) / 2f
+            - (deer.getHeight() - deerCollisionHeight) / 2f;
+
+        deer.resetPosition(birdStartX, birdStartY);
+        deer.setTarget(targetX, targetY);
+        deer.activate();
     }
 
     private void checkSupplyCollision() {
@@ -626,171 +624,104 @@ public class LogicManager {
 
             lastSupplyHealAmount = player.getEnergy() - previousEnergy;
             supplyHealMessageTimer = 1.5f;
-
-            // Frodo entra en espera tras curar a Emily
+            // frodo entra en espera después de curar a Emily
             supplyCooldownTimer = SUPPLY_CALL_COOLDOWN;
-
-            // Frodo deja de estar en modo llamada
             supply.setCalled(false);
-        }
-    }
-
-    // --- OSO ---
-
-    private void updateGuardianDamageTimer(float delta) {
-        if (guardianDamageTimer > 0) {
-            guardianDamageTimer -= delta;
         }
     }
 
     private void checkGuardianCollision() {
-        float guardianCollisionWidth = 28f;
-        float guardianCollisionHeight = 20f;
+        boolean playerCollisionX = getPlayerHitboxRight() > guardian.getX()
+            && getPlayerHitboxLeft() < guardian.getX() + guardian.getWidth();
 
-        float guardianLeft = guardian.getX() + (guardian.getWidth() - guardianCollisionWidth) / 2f;
-        float guardianRight = guardianLeft + guardianCollisionWidth;
-        float guardianBottom = guardian.getY();
-        float guardianTop = guardianBottom + guardianCollisionHeight;
+        boolean playerCollisionY = getPlayerHitboxTop() > guardian.getY()
+            && getPlayerHitboxBottom() < guardian.getY() + guardian.getHeight();
 
-        boolean collisionX = getPlayerHitboxLeft() < guardianRight
-            && getPlayerHitboxRight() > guardianLeft;
+        boolean supplyCollisionX = supply.getX() + supply.getWidth() > guardian.getX()
+            && supply.getX() < guardian.getX() + guardian.getWidth();
 
-        boolean collisionY = getPlayerHitboxBottom() < guardianTop
-            && getPlayerHitboxTop() > guardianBottom;
+        boolean supplyCollisionY = supply.getY() + supply.getHeight() > guardian.getY()
+            && supply.getY() < guardian.getY() + guardian.getHeight();
 
-        if (collisionX && collisionY && guardianDamageTimer <= 0 && immunityTimer <= 0) {
-            // el oso quita una vida
-            player.loseLife();
+        boolean collisionWithGuardian = (playerCollisionX && playerCollisionY)
+            || (supplyCollisionX && supplyCollisionY);
 
-            // El oso penaliza la puntuación
-            player.setScore(player.getScore() - 25);
-
-            // Activa de un segundo tras el impacto
-            guardianDamageTimer = 1f;
-
-            // Jugador (niña) vuelve a la salida
-            player.setX(PLAYER_START_X);
-            player.setY(PLAYER_START_Y);
-
-            // Acompañante (Frodo) también vuelve a la salida
-            supply.setX(SUPPLY_START_X);
-            supply.setY(SUPPLY_START_Y);
-            supply.setCalled(false);
-        }
-    }
-
-    // --- CIERVO ---
-
-    private void updateDeerDamageTimer(float delta) {
-        if (deerDamageTimer > 0) {
-            deerDamageTimer -= delta;
-        }
-    }
-
-    // Detecta si la niña pasa por el punto de activación
-    private void checkDeerActivation() {
-        if (deer.isActive()) {
-            return;
-        }
-
-        float playerCenterX = player.getX() + player.getWidth() / 2;
-        float playerCenterY = player.getY() + player.getHeight() / 2;
-
-        // La niña cruza el punto de activación hacia la derecha
-        if (previousPlayerX <= deer.getTriggerX() && player.getX() > deer.getTriggerX()) {
-            deer.resetPosition(-60, Gdx.graphics.getHeight() - deer.getHeight());
-            deer.activateTowards(playerCenterX, playerCenterY);
-        }
-
-        // La niña cruza el punto de activación hacia la izquierda
-        if (previousPlayerX >= deer.getTriggerX() && player.getX() < deer.getTriggerX()) {
-            deer.resetPosition(Gdx.graphics.getWidth() + 60, 0);
-            deer.activateTowards(playerCenterX, playerCenterY);
-        }
-    }
-
-    // Coloca al ciervo fuera de la pantalla al terminar
-    private void resetDeerIfNeeded() {
-        if (!deer.isActive()) {
-            return;
-        }
-
-        // El ciervo no debe invadir la zona final del guardián.
-        // Si llega a esa parte del escenario, se resetea para poder volver a activarse.
-        float deerLimitRight = guardian.getX() - deer.getWidth() - 20;
-        float deerLimitLeft = deer.getTriggerX() + 20;
-
-        if (deer.isMovingRight()) {
-            boolean outRight = deer.getX() > Gdx.graphics.getWidth();
-            boolean outBottom = deer.getY() + deer.getHeight() < 0;
-            boolean reachedGuardianZone = deer.getX() > deerLimitRight;
-
-            if (outRight || outBottom || reachedGuardianZone) {
-                deer.resetPosition(-60, Gdx.graphics.getHeight() - deer.getHeight());
-            }
-        } else {
-            boolean outLeft = deer.getX() + deer.getWidth() < 0;
-            boolean outTop = deer.getY() > Gdx.graphics.getHeight();
-            boolean crossedBackTooMuch = deer.getX() < deerLimitLeft;
-
-            if (outLeft || outTop || crossedBackTooMuch) {
-                deer.resetPosition(Gdx.graphics.getWidth() + 60, 0);
+        if (collisionWithGuardian) {
+            if (player.getImmunityCollected() == 0 && guardianDamageTimer <= 0) {
+                killPlayerByGuardian();
+                guardianDamageTimer = 1.5f;
             }
         }
     }
 
-    // Colisión. Se bloquea 1'' y se desplaza a la niña dos casillas atrás
     private void checkDeerCollision() {
         float deerCollisionWidth = 28f;
-        float deerCollisionHeight = 20f;
+        float deerCollisionHeight = 28f;
 
         float deerLeft = deer.getX() + (deer.getWidth() - deerCollisionWidth) / 2f;
         float deerRight = deerLeft + deerCollisionWidth;
-        float deerBottom = deer.getY();
+        float deerBottom = deer.getY() + (deer.getHeight() - deerCollisionHeight) / 2f;
         float deerTop = deerBottom + deerCollisionHeight;
 
-        boolean collisionX = getPlayerHitboxLeft() < deerRight
-            && getPlayerHitboxRight() > deerLeft;
+        boolean collisionX = getPlayerHitboxLeft() <= deerRight
+            && getPlayerHitboxRight() >= deerLeft;
 
-        boolean collisionY = getPlayerHitboxBottom() < deerTop
-            && getPlayerHitboxTop() > deerBottom;
+        boolean collisionY = getPlayerHitboxBottom() <= deerTop
+            && getPlayerHitboxTop() >= deerBottom;
 
-        if (collisionX && collisionY && deerDamageTimer <= 0 && immunityTimer <=0) {
-            // el ciervo quita el 50% de la energía disponible
+        if (collisionX && collisionY && deerDamageTimer <= 0) {
             int damage = player.getEnergy() / 2;
             player.setEnergy(player.getEnergy() - damage);
 
-            // El ciervo también penaliza la puntuación
             player.setScore(player.getScore() - 15);
 
-            // Activa de un segundo tras impacto
             deerDamageTimer = 1f;
             deerHitMessageTimer = 1.5f;
 
-            // El ciervo derriba al jugador (niña) hacia atrás, evitando los obstáculos
             if (deer.isMovingRight()) {
                 pushPlayerBackSafely(64f, true);
             } else {
                 pushPlayerBackSafely(64f, false);
             }
 
+            deer.resetPosition(birdStartX, birdStartY);
+
             keepPlayerInsideWorld();
 
-            // El acompañante (Frodo) se recoloca automáticamente dos casillas a la derecha de la niña
             supply.setX(player.getX() + 64);
             supply.setY(player.getY());
             supply.setCalled(false);
+
+            if (supply.getX() + supply.getWidth() > worldWidth) {
+                supply.setX(worldWidth - supply.getWidth());
+            }
         }
     }
 
-    private void pushPlayerBackSafely(float totalDistance, boolean pushToleft) {
+    private void resetDeerIfNeeded() {
+        if (deer == null || !deer.isActive()) {
+            return;
+        }
+
+        boolean outRight = deer.getX() > worldWidth + 60;
+        boolean outLeft = deer.getX() + deer.getWidth() < -60;
+        boolean outBottom = deer.getY() + deer.getHeight() < -60;
+        boolean outTop = deer.getY() > worldHeight + 60;
+
+        if (outRight || outLeft || outBottom || outTop) {
+            deer.resetPosition(birdStartX, birdStartY);
+            birdTriggered = false;
+        }
+    }
+
+    private void pushPlayerBackSafely(float totalDistance, boolean pushToLeft) {
         float stepDistance = 8f;
         int steps = (int) (totalDistance / stepDistance);
 
         for (int i = 0; i < steps; i++) {
             float previousX = player.getX();
 
-            if (pushToleft) {
+            if (pushToLeft) {
                 player.setX(player.getX() - stepDistance);
             } else {
                 player.setX(player.getX() + stepDistance);
@@ -804,33 +735,64 @@ public class LogicManager {
         }
     }
 
-    private void updateDeerHitMessageTimer(float delta) {
-        if (deerHitMessageTimer > 0) {
-            deerHitMessageTimer -= delta;
-        }
-    }
-
-    // --- COMPROBACIONES DE ESTADO GLOBAL ---
+    // --- REINICIO Y ESTADO GLOBAL ---
 
     private void checkPlayerEnergy() {
         if (player.getEnergy() > 0) {
             return;
         }
 
-        // pierde una vida
-        player.loseLife();
+        loseLifeAndReset();
+    }
 
-        // recupera toda la energía
+    private void resetLevelState() {
+        player.setX(playerStartX);
+        player.setY(playerStartY);
         player.setEnergy(player.getMaxEnergy());
 
-        // Se reinicia la posición del jugador
-        player.setX(PLAYER_START_X);
-        player.setY(PLAYER_START_Y);
+        if (relic != null) {
+            relic.setCollected(false);
+        }
+        if (scoreItem != null) {
+            scoreItem.reset();
+        }
+        if (immunityItem != null) {
+            immunityItem.reset();
+        }
+        if (poisonItem != null) {
+            poisonItem.reset();
+        }
 
-        // Se reinicia la posición de Frodo
-        supply.setX(SUPPLY_START_X);
-        supply.setY(SUPPLY_START_Y);
-        supply.setCalled(false);
+        supply.reset(supplyStartX, supplyStartY);
+
+        if (deer != null) {
+            deer.resetPosition(birdStartX, birdStartY);
+        }
+
+        birdTriggered = false;
+
+        guardianDamageTimer = 0;
+        deerDamageTimer = 0;
+        supplyCooldownTimer = 0;
+        supplyUnavailableMessageTimer = 0;
+        supplyHealMessageTimer = 0;
+        deerHitMessageTimer = 0;
+        immunityMessageTimer = 0;
+        poisonTimer = 0;
+        poisonMessageTimer = 0;
+    }
+
+    private void loseLifeAndReset() {
+        player.loseLife();
+
+        if (player.getLives() > 0) {
+            resetLevelState();
+        }
+    }
+
+    private void killPlayerByGuardian() {
+        guardianDeathMessageTimer = 2f;
+        loseLifeAndReset();
     }
 
     public boolean isGameOver() {
@@ -841,7 +803,76 @@ public class LogicManager {
         return relic.isCollected();
     }
 
+    // --- UPDATE TIMERS ---
+
+    private void updateGuardianDamageTimer(float delta) {
+        if (guardianDamageTimer > 0) {
+            guardianDamageTimer -= delta;
+        }
+    }
+
+    private void updateDeerDamageTimer(float delta) {
+        if (deerDamageTimer > 0) {
+            deerDamageTimer -= delta;
+        }
+    }
+
+    private void updateScoreMessageTimer(float delta) {
+        if (scoreMessageTimer > 0) {
+            scoreMessageTimer -= delta;
+        }
+    }
+
+    private void updateSupplyCooldownTimer(float delta) {
+        if (supplyCooldownTimer > 0) {
+            supplyCooldownTimer -= delta;
+        }
+    }
+
+    public void updateSupplyUnavailableMessageTimer(float delta) {
+        if (supplyUnavailableMessageTimer > 0) {
+            supplyUnavailableMessageTimer -= delta;
+        }
+    }
+
+    private void updateSupplyHealMessageTimer(float delta) {
+        if (supplyHealMessageTimer > 0) {
+            supplyHealMessageTimer -= delta;
+        }
+    }
+
+    private void updateDeerHitMessageTimer(float delta) {
+        if (deerHitMessageTimer > 0) {
+            deerHitMessageTimer -= delta;
+        }
+    }
+
+    private void updateImmunityMessageTimer(float delta) {
+        if (immunityMessageTimer > 0) {
+            immunityMessageTimer -= delta;
+        }
+    }
+
+    private void updatePoisonTimer(float delta) {
+        if (poisonTimer > 0) {
+            poisonTimer -= delta;
+        }
+    }
+
+    private void updatePoisonMessageTimer(float delta) {
+        if (poisonMessageTimer > 0) {
+            poisonMessageTimer -= delta;
+        }
+    }
+
+    private void updateGuardianDeathMessageTimer(float delta) {
+        if (guardianDeathMessageTimer > 0) {
+            guardianDeathMessageTimer -= delta;
+        }
+    }
+
     // --- GETTERS ---
+
     public Player getPlayer() {
         return player;
     }
@@ -876,6 +907,10 @@ public class LogicManager {
 
     public float getGuardianDamageTimer() {
         return guardianDamageTimer;
+    }
+
+    public float getGuardianDeathMessageTimer() {
+        return guardianDeathMessageTimer;
     }
 
     public float getScoreMessageTimer() {

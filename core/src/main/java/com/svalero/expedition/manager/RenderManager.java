@@ -42,7 +42,7 @@ public class RenderManager {
         this.guardianTexture = ResourceManager.getTexture("bear/bear_idle.png");
         this.deerTexture = ResourceManager.getTexture("deer/deer_walk_4.png");
         this.immunityItemTexture = ResourceManager.getTexture("items/apple_item.png");
-        this.poisonItemTexture = ResourceManager.getTexture("items/poison_item.png");
+        this.poisonItemTexture = ResourceManager.getTexture("items/apple_item.png");
     }
 
     public void render() {
@@ -97,8 +97,8 @@ public class RenderManager {
         font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 350);
         font.draw(batch, "Nivel: 1", 50, 320);
 
-        if (logicManager.getGuardianDamageTimer() > 0) {
-            font.draw(batch, "¡El oso te ha atacado!", 50, 100);
+        if (logicManager.getGuardianDeathMessageTimer() > 0) {
+            font.draw(batch, "¡El oso te ha atacado! Quizás si le llevas comida..", 50, 100);
         }
 
         if (logicManager.getScoreMessageTimer() > 0) {
@@ -114,15 +114,11 @@ public class RenderManager {
         }
 
         if (logicManager.getDeerHitMessageTimer() > 0) {
-            font.draw(batch, "¡Te has chocado con el asustado ciervo!", 50, 100);
+            font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 50, 100);
         }
 
         if (logicManager.getImmunityMessageTimer() > 0) {
-            font.draw(batch, "¡SUERTE! Tienes 5s de inmunidad", 50, 100);
-        }
-
-        if (logicManager.getPoisonMessageTimer() > 0) {
-            font.draw(batch, "Oh, oh! Serás más lenta durante los próximos 5s", 50, 100);
+            font.draw(batch, "¡SUERTE! Con esta manzana podrás acceder a la cueva sin que te ataque el oso", 50, 100);
         }
 
         batch.end();

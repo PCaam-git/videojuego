@@ -9,6 +9,8 @@ public class Deer extends NPC {
     private float velocityX; //movimiento diagonal
     private float velocityY; // movimiento diagonal
     private float triggerX; // posición X donde el personaje lo activa
+    private float targetX;
+    private float targetY;
 
     public Deer(float x, float y, float speed, float triggerX) {
 
@@ -20,6 +22,7 @@ public class Deer extends NPC {
         this.velocityX = 0;
         this.velocityY = 0;
         this.triggerX = triggerX;
+
     }
 
     @Override
@@ -28,26 +31,34 @@ public class Deer extends NPC {
             return;
         }
 
-        x += velocityX * delta;
-        y += velocityY *delta;
-    }
-
-    public void activateTowards(float targetX, float targetY) {
-        isActive = true;
-
+        // Se recalcula la distancia hasta el jugador
         float distanceX = targetX - x;
         float distanceY = targetY - y;
         float distance = (float) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
-        if (distance == 0) {
+
+        if (distance <= speed * delta) {
+            x = targetX;
+            y = targetY;
             velocityX = 0;
             velocityY = 0;
+            isActive = false;
             return;
         }
 
-        velocityX = (distanceX / distance) * speed;
-        velocityY = (distanceY / distance) * speed;
+        if (distance > 0) {
+            velocityX = (distanceX / distance) * speed;
+            velocityY = (distanceY / distance) * speed;
+        }
+
         movingRight = velocityX > 0;
+
+        x += velocityX * delta;
+        y += velocityY * delta;
+    }
+
+    public void activate() {
+        this.isActive = true;
     }
 
     public void resetPosition (float x, float y) {
@@ -56,6 +67,13 @@ public class Deer extends NPC {
         this.isActive = false;
         this.velocityX = 0;
         this.velocityY = 0;
+        this.targetX = 0;
+        this.targetY = 0;
+    }
+
+    public void setTarget(float targetX, float targetY) {
+        this.targetX = targetX;
+        this.targetY = targetY;
     }
 
     public float getWidth() {

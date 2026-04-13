@@ -45,4 +45,8 @@ public class ScoreItem {
     public void setCollected(boolean collected) {
         this.collected = collected;
     }
+
+    public void reset() {
+        this.collected = false;
+    }
 }

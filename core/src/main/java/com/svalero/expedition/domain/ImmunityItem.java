@@ -22,5 +22,10 @@ public class ImmunityItem {
     public float getHeight() { return height; }
 
     public boolean isCollected() { return collected; }
+
     public void setCollected(boolean collected) { this.collected = collected; }
+
+    public void reset() {
+        this.collected = false;
+    }
 }

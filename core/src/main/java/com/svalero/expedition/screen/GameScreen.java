@@ -51,7 +51,7 @@ public class GameScreen implements Screen {
         logicManager.update(delta);
 
         if (logicManager.isLevelCompleted()) {
-            game.setScreen(new VictoryScreen(game, logicManager.getPlayer().getScore()));
+            game.setScreen(new VictoryScreen(game, logicManager.getPlayer()));
             return;
         }
 
