@@ -29,40 +29,30 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        // limpia la pantalla en cada frame
+        // Limpia la pantalla en cada frame
         // Fondo negro
         ScreenUtils.clear(0, 0, 0, 1);
 
         batch.begin();
-        font.draw(batch, "EXPEDITION", 320, 440);
-        font.draw(batch, "Emily, una joven exploradora, recorre el bosque junto a Frodo,", 80, 410);
-        font.draw(batch, "su perro y compañero de aventura.", 80, 380);
-        font.draw(batch, "En lo profundo del bosque se encuentra el hueso perdido,", 80, 350);
-        font.draw(batch, "custodiado por un gran oso.", 80, 320);
+        font.draw(batch, "EXPEDITION", 320, 420);
 
-        font.draw(batch, "OBJETIVO DEL NIVEL 1", 80, 270);
-        font.draw(batch, "Recupera el hueso y evita los peligros del camino.", 80, 250);
-
-        font.draw(batch, "OBJETOS DEL NIVEL", 80, 210);
-        font.draw(batch, "Huevo: +25 puntos", 80, 190);
-        font.draw(batch, "Manzana: inmunidad temporal", 80, 170);
-        font.draw(batch, "Veneno: ralentiza al personaje", 80, 150);
-
-        font.draw(batch, "CONTROLES", 80, 100);
-        font.draw(batch, "Flechas -> mover a la protagonista", 80, 80);
-        font.draw(batch, "P -> llamar a Frodo", 80, 60);
-
-        font.draw(batch, "ENTER -> jugar", 400, 80);
-        font.draw(batch, "C -> configuración", 400, 60);
+        // Opciones principales del menu
+        font.draw(batch, "ENTER -> jugar", 300, 300);
+        font.draw(batch, "I -> instrucciones", 300, 270);
+        font.draw(batch, "C -> configuracion", 300, 240);
         batch.end();
 
-        // gdx.input -> lectura del teclado
-        // isKeyJustPressed -> pulsación puntual
-        // setScreen -> cambio de pantalla
+        // Cambia a la pantalla de juego
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             game.setScreen(new GameScreen(game));
         }
 
+        // Cambia a la pantalla de instrucciones
+        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
+            game.setScreen(new InstructionsScreen(game));
+        }
+
+        // Cambia a la pantalla de configuracion
         if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
             game.setScreen(new ConfigurationScreen(game));
         }
