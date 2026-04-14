@@ -4,13 +4,14 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-
-import javax.swing.*;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 
 public class ResourceManager {
 
     private static final AssetManager manager = new AssetManager();
     private static boolean resourcesLoaded = false;
+    private static Texture whitePixelTexture;
 
     public static void loadAllResources() {
         // Evita recargar los mismos recursos si ya están en memoria
@@ -43,12 +44,25 @@ public class ResourceManager {
         manager.load("sounds/score_collect.wav", Sound.class);
         manager.load("sounds/poison_collect.mp3", Sound.class);
 
+        // Textura blanca de 1x1 para dibujar paneles simples por encima del juego
+        if (whitePixelTexture == null) {
+            Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+            pixmap.setColor(1, 1, 1, 1);
+            pixmap.fill();
+            whitePixelTexture = new Texture(pixmap);
+            pixmap.dispose();
+        }
+
         manager.finishLoading();
         resourcesLoaded = true;
     }
 
         public static Texture getTexture(String path) {
             return manager.get(path, Texture.class);
+        }
+
+        public static Texture getWhitePixelTexture() {
+            return whitePixelTexture;
         }
 
         public static Music getMusic(String path) {
@@ -65,6 +79,12 @@ public class ResourceManager {
 
         public static void dispose() {
             manager.dispose();
+
+            if (whitePixelTexture != null) {
+                whitePixelTexture.dispose();
+                whitePixelTexture = null;
+            }
+
             resourcesLoaded = false;
         }
     }

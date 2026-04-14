@@ -15,13 +15,22 @@ public class ConfigurationScreen implements Screen {
 
     private final ExpeditionGame game;
     private final ConfigurationManager configurationManager;
+    private final GameScreen returnGameScreen;
     private SpriteBatch batch;
     private BitmapFont font;
 
     public ConfigurationScreen(ExpeditionGame game) {
         this.game = game;
         this.configurationManager = new ConfigurationManager();
+        this.returnGameScreen = null;
     }
+
+    public ConfigurationScreen(ExpeditionGame game, GameScreen returnGameScreen) {
+        this.game = game;
+        this.configurationManager = new ConfigurationManager();
+        this.returnGameScreen = returnGameScreen;
+    }
+
 
     @Override
     public void show() {
@@ -63,7 +72,12 @@ public class ConfigurationScreen implements Screen {
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new MainMenuScreen(game));
+            // Si se abrió desde la partida, vuelve al juego pausado
+            if (returnGameScreen != null) {
+                game.setScreen(returnGameScreen);
+            } else {
+                game.setScreen(new MainMenuScreen(game));
+            }
         }
 
         batch.begin();
@@ -74,7 +88,11 @@ public class ConfigurationScreen implements Screen {
         font.draw(batch, "Pulsa S para activar o desactivar el sonido", 160, 230);
         font.draw(batch, "Sonido: " + (configurationManager.isSoundEnabled() ? "activado" : "desactivado"), 160, 200);
 
-        font.draw(batch, "ESC -> volver al menu principal", 160, 120);
+        if (returnGameScreen != null) {
+            font.draw(batch, "ESC -> volver al juego", 160, 120);
+        } else {
+            font.draw(batch, "ESC -> volver al menu principal", 160, 120);
+        }
         batch.end();
     }
 

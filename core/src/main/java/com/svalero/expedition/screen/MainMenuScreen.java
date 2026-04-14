@@ -34,12 +34,12 @@ public class MainMenuScreen implements Screen {
         ScreenUtils.clear(0, 0, 0, 1);
 
         batch.begin();
-        font.draw(batch, "EXPEDITION", 320, 420);
+        font.draw(batch, "EXPEDITION", 235, 380);
 
         // Opciones principales del menu
-        font.draw(batch, "ENTER -> jugar", 300, 300);
-        font.draw(batch, "I -> instrucciones", 300, 270);
-        font.draw(batch, "C -> configuracion", 300, 240);
+        font.draw(batch, "ENTER -> jugar", 220, 300);
+        font.draw(batch, "I -> instrucciones", 220, 270);
+        font.draw(batch, "C -> configuracion", 220, 240);
         batch.end();
 
         // Cambia a la pantalla de juego

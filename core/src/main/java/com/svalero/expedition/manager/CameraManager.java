@@ -8,6 +8,9 @@ import com.svalero.expedition.domain.Player;
 
 public class CameraManager {
 
+    // Tamaño fijo de la cámara. 15 Tiles de 32 pixeles de ancho y algo
+    private static final float VIEWPORT_WIDTH = 15f * 32f;
+    private static final float VIEWPORT_HEIGHT = 15f * 32f;
     // La cámara  que proyecta el juego en 2D
     private final OrthographicCamera camera;
 
@@ -18,43 +21,35 @@ public class CameraManager {
         this.logicManager = logicManager;
         this.levelManager = levelManager;
 
-        camera = new OrthographicCamera();
-
-        // Configuración de la cámara para que coincida con el tamaño inicial de la ventana.
-        // El parámetro 'false' indica que el eje Y crece hacia arriba.
-        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        // Usa un tamaño fijo del mundo
+        camera = new OrthographicCamera(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
         // Actualización para posicionarla correctamente al inicio
         update();
     }
 
-     // Se encarga de seguir a la jugadora y evitar que la cámara muestre zonas fuera del mapa.
-
+    // Se encarga de seguir a la jugadora y evitar que la cámara muestre zonas fuera del mapa
     public void update() {
         // Referencia de la jugadora actual
         Player player = logicManager.getPlayer();
 
-        // Cálculo del punto central de la jugadora.
-        // Suma de la mitad de su anchura y altura a su posición (X, Y) inferior izquierda.
+        // Cálculo del punto central de la jugadora
         float targetX = player.getX() + player.getWidth() / 2f;
         float targetY = player.getY() + player.getHeight() / 2f;
 
-        // Cálculo de la mitad del tamaño de la visión de la cámara.
-        // Es necesario para saber a qué distancia del centro de la cámara están los bordes de la pantalla.
+        // Mitad del tamaño visible de la cámara
         float halfViewportWidth = camera.viewportWidth / 2f;
         float halfViewportHeight = camera.viewportHeight / 2f;
 
-        // Obtención de las dimensiones totales del mapa (en píxeles, considerando la escala)
+        // Dimensiones totales del mapa
         float worldWidth = levelManager.getWorldWidth();
         float worldHeight = levelManager.getWorldHeight();
 
-        // MathUtils.clamp asegura que el valor de la cámara nunca sea menor que el borde izquierdo/inferior
-        // ni mayor que el borde derecho/superior del mapa.
+        // La cámara no puede mostrar zonas fuera del mapa
         float cameraX = MathUtils.clamp(targetX, halfViewportWidth, worldWidth - halfViewportWidth);
         float cameraY = MathUtils.clamp(targetY, halfViewportHeight, worldHeight - halfViewportHeight);
 
-        // Si el mapa es más pequeño que la ventana del juego, se centra la cámara estáticamente en medio del mapa.
-
+        // Si el mapa es más pequeño que el viewport, se centra la cámara
         if (worldWidth <= camera.viewportWidth) {
             cameraX = worldWidth / 2f;
         }
@@ -64,18 +59,18 @@ public class CameraManager {
         }
 
         camera.position.set(cameraX, cameraY, 0);
-
         camera.update();
 
         levelManager.getMapRenderer().setView(camera);
     }
 
-    /**
-     * Método para reajustar la cámara si la ventana del juego cambia de tamaño.
-     * Evita que los gráficos se estiren o se deformen.
-     */
+
+     // Mantiene el mismo tamaño de cámara aunque cambie la ventana.
+     // Así se evita que el área visible del mundo dependa del tamaño real de la pantalla.
+
     public void resize(int width, int height) {
-        camera.setToOrtho(false, width, height);
+        camera.viewportWidth = VIEWPORT_WIDTH;
+        camera.viewportHeight = VIEWPORT_HEIGHT;
         update();
     }
 
