@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.svalero.expedition.ExpeditionGame;
 import com.svalero.expedition.manager.ConfigurationManager;
+import com.svalero.expedition.manager.ResourceManager;
 
 
 public class ConfigurationScreen implements Screen {
@@ -24,9 +25,18 @@ public class ConfigurationScreen implements Screen {
 
     @Override
     public void show() {
+        ResourceManager.loadAllResources();
         batch = new SpriteBatch();
         font =new BitmapFont();
+    }
 
+    private void playButtonSound() {
+        // Solo reproduce el sonido del botón si el sonido está activado
+        if (!configurationManager.isSoundEnabled()) {
+            return;
+        }
+
+        ResourceManager.getSound("sounds/button.wav").play();
     }
 
     @Override
@@ -37,10 +47,19 @@ public class ConfigurationScreen implements Screen {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
             configurationManager.setMusicEnabled(!configurationManager.isMusicEnabled());
+            playButtonSound();
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            configurationManager.setSoundEnabled(!configurationManager.isSoundEnabled());
+            boolean soundWasEnabled = configurationManager.isSoundEnabled();
+            configurationManager.setSoundEnabled(!soundWasEnabled);
+
+            // El sonido del botón se reproduce antes de quedar desactivado
+            if (soundWasEnabled) {
+                ResourceManager.getSound("sounds/button.wav").play();
+            } else {
+                playButtonSound();
+            }
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {

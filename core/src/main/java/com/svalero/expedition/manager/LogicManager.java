@@ -41,6 +41,8 @@ public class LogicManager {
     private ImmunityItem immunityItem;
     private PoisonItem poisonItem;
 
+    private final ConfigurationManager configurationManager;
+
 
     // timers
     private float guardianDamageTimer; // tiempo de espera entre daños consecutivos.
@@ -74,6 +76,8 @@ public class LogicManager {
 
     // Ubicación
     public LogicManager() {
+        configurationManager = new ConfigurationManager();
+
         player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
         relic = new Relic(600, 220);
         scoreItem = new ScoreItem(320, 220, 24, 24, 25);
@@ -214,6 +218,15 @@ public class LogicManager {
         }
     }
 
+    private void playSound(String path) {
+        // Solo reproduce efectos si el sonido está activado en configuración
+        if (!configurationManager.isSoundEnabled()) {
+            return;
+        }
+
+        ResourceManager.getSound(path).play();
+    }
+
 
     // --- CORE LOOP --- Lógica que se ejecuta continuamente
 
@@ -299,6 +312,8 @@ public class LogicManager {
 
             if (playerNeedsEnergy && supplyAvailable && supplyNotAlreadyCalled) {
                 supply.setCalled(true);
+                // sonido de llamada a frodo
+                playSound("sounds/call_supply.wav");
             } else {
                 supplyUnavailableMessageTimer = 1.5f;
             }
@@ -480,7 +495,10 @@ public class LogicManager {
 
         if (collisionX && collisionY) {
             relic.setCollected(true);
-            player.setScore(player.getScore()+ 100);
+            player.setScore(player.getScore() + 100);
+
+            // Sonido al recoger la reliquia final
+            playSound("sounds/relic_collect.wav");
         }
     }
 
@@ -516,6 +534,9 @@ public class LogicManager {
             scoreItem.setCollected(true);
             player.setScore(player.getScore() + scoreItem.getScoreValue());
             scoreMessageTimer = 1.5f;
+
+            // Sonido al recoger item de puntuación
+            playSound("sounds/score_collect.wav");
         }
     }
 
@@ -547,6 +568,9 @@ public class LogicManager {
             immunityItem.setCollected(true);
             player.addImmunity();
             immunityMessageTimer = 1.5f;
+
+            // Sonido al recoger el item de inmunidad
+            playSound("sounds/immunity_collect.wav");
         }
     }
 
@@ -579,6 +603,9 @@ public class LogicManager {
             poisonTimer = POISON_DURATION;
             poisonMessageTimer = 1.5f;
             player.addPoison();
+
+            // Sonido al recoger veneno
+            playSound("sounds/poison_collect.mp3");
         }
     }
 
@@ -672,6 +699,8 @@ public class LogicManager {
         if (collisionX && collisionY && birdDamageTimer <= 0) {
             int damage = player.getEnergy() / 2;
             player.setEnergy(player.getEnergy() - damage);
+            // sonido al colisionar con el ave
+            playSound("sounds/hurt.wav");
 
             player.setScore(player.getScore() - 15);
 
@@ -792,6 +821,10 @@ public class LogicManager {
 
     private void killPlayerByGuardian() {
         guardianDeathMessageTimer = 2f;
+
+        // Sonido de daño al morir por el oso
+        playSound("sounds/hurt.wav");
+
         loseLifeAndReset();
     }
 

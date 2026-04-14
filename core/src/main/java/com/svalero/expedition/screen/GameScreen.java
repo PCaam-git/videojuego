@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.audio.Music;
 
 import com.svalero.expedition.ExpeditionGame;
 import com.svalero.expedition.manager.*;
@@ -17,6 +18,7 @@ public class GameScreen implements Screen {
     private final LevelManager levelManager;
     private RenderManager renderManager; // responsable del dibujo
     private CameraManager cameraManager;
+    private Music backgroundMusic;
 
     public GameScreen(ExpeditionGame game) {
         this.game = game;
@@ -40,6 +42,32 @@ public class GameScreen implements Screen {
 
         cameraManager = new CameraManager(logicManager, levelManager);
         this.renderManager = new RenderManager(levelManager.getBatch(), logicManager, cameraManager);
+
+        // Prepara la música de fondo del nivel
+        backgroundMusic = ResourceManager.getMusic("music/background_music.wav");
+        backgroundMusic.setLooping(true);
+
+        // Solo se reproduce si la configuración está activada
+        if (configurationManager.isMusicEnabled()) {
+            backgroundMusic.play();
+        }
+    }
+
+    private void updateBackgroundMusicState() {
+        if (backgroundMusic == null) {
+            return;
+        }
+
+        // Mantiene la música sincronizada con la preferencia guardada
+        if (configurationManager.isMusicEnabled()) {
+            if (!backgroundMusic.isPlaying()) {
+                backgroundMusic.play();
+            }
+        } else {
+            if (backgroundMusic.isPlaying()) {
+                backgroundMusic.stop();
+            }
+        }
     }
 
     @Override
@@ -47,6 +75,9 @@ public class GameScreen implements Screen {
         // limpia la pantalla en cada frame
         // fondo gris oscuro
         ScreenUtils.clear(0, 0, 0.2f, 1);
+
+        // Revisa en cada frame si la música debe estar activa o parada
+        updateBackgroundMusicState();
 
         logicManager.update(delta);
 
@@ -87,11 +118,18 @@ public class GameScreen implements Screen {
 
     @Override
     public void hide() {
-
+        // Detiene la música al salir de la pantalla de juego
+        if (backgroundMusic != null) {
+            backgroundMusic.stop();
+        }
     }
 
     @Override
     public void dispose() {
+        if (backgroundMusic != null) {
+            backgroundMusic.stop();
+        }
+
         renderManager.dispose();
         levelManager.dispose();
         ResourceManager.dispose();
