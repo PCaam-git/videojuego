@@ -11,7 +11,7 @@ import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.ScoreItem;
 import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
-import com.svalero.expedition.domain.Deer;
+import com.svalero.expedition.domain.Bird;
 import com.svalero.expedition.domain.ImmunityItem;
 import com.svalero.expedition.domain.PoisonItem;
 
@@ -26,7 +26,8 @@ public class RenderManager {
     private final Texture scoreItemTexture;
     private final Texture supplyTexture;
     private final Texture guardianTexture;
-    private final Texture deerTexture;
+    private final Texture relicTexture;
+    private final Texture birdTexture;
     private final Texture immunityItemTexture;
     private final Texture poisonItemTexture;
 
@@ -40,7 +41,8 @@ public class RenderManager {
         this.scoreItemTexture = ResourceManager.getTexture("items/egg_item.png");
         this.supplyTexture = ResourceManager.getTexture("dog/dog_idle.png");
         this.guardianTexture = ResourceManager.getTexture("bear/bear_idle.png");
-        this.deerTexture = ResourceManager.getTexture("deer/deer_walk_4.png");
+        this.relicTexture = ResourceManager.getTexture("relic/bone.png");
+        this.birdTexture = ResourceManager.getTexture("bird/bird_idle.png");
         this.immunityItemTexture = ResourceManager.getTexture("items/apple_item.png");
         this.poisonItemTexture = ResourceManager.getTexture("items/apple_item.png");
     }
@@ -57,7 +59,7 @@ public class RenderManager {
 
         Relic relic = logicManager.getRelic();
         if (!relic.isCollected()) {
-            batch.draw(playerTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+            batch.draw(relicTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
         }
 
         ScoreItem scoreItem = logicManager.getScoreItem();
@@ -81,9 +83,9 @@ public class RenderManager {
         Guardian guardian = logicManager.getGuardian();
         batch.draw(guardianTexture, guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
 
-        Deer deer = logicManager.getDeer();
-        if (deer.isActive()) {
-            batch.draw(deerTexture, deer.getX(), deer.getY(), deer.getWidth(), deer.getHeight());
+        Bird bird = logicManager.getBird();
+        if (bird.isActive()) {
+            batch.draw(birdTexture, bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight());
         }
 
         batch.end();
@@ -113,7 +115,7 @@ public class RenderManager {
             font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 50, 40);
         }
 
-        if (logicManager.getDeerHitMessageTimer() > 0) {
+        if (logicManager.getBirdHitMessageTimer() > 0) {
             font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 50, 100);
         }
 
