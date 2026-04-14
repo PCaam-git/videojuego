@@ -2,13 +2,12 @@ package com.svalero.expedition.manager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
-import com.svalero.expedition.screen.ConfigurationScreen;
 
 public class ConfigurationManager {
 
-    private static final String PREFERENCES_NAME = "Configuración de Expedition";
-    private static final String MUSIC_ENABLED_KEY = "Activar música";
-    private static final String SOUND_ENABLED_KEY = "Activar sonido";
+    private static final String PREFERENCES_NAME = "configuracion_expedition";
+    private static final String MUSIC_ENABLED_KEY = "musica_activada";
+    private static final String SOUND_ENABLED_KEY = "sonido_activado";
 
     private final Preferences preferences;
 
@@ -29,7 +28,7 @@ public class ConfigurationManager {
         return preferences.getBoolean(SOUND_ENABLED_KEY, true);
     }
 
-    public void setSoundEnabledKey(boolean soundEnabled) {
+    public void setSoundEnabled(boolean soundEnabled) {
         preferences.putBoolean(SOUND_ENABLED_KEY, soundEnabled);
         preferences.flush();
     }
