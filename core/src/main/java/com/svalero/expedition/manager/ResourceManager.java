@@ -2,15 +2,23 @@ package com.svalero.expedition.manager;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 
 import javax.swing.*;
 
 public class ResourceManager {
 
     private static final AssetManager manager = new AssetManager();
+    private static boolean resourcesLoaded = false;
 
     public static void loadAllResources() {
+        // Evita recargar los mismos recursos si ya están en memoria
+        if (resourcesLoaded) {
+            return;
+        }
 
+        //Texturas
         manager.load("player/player_idle.png", Texture.class);
         manager.load("items/egg_item.png", Texture.class);
         manager.load("dog/dog_idle.png", Texture.class);
@@ -20,19 +28,43 @@ public class ResourceManager {
         manager.load("items/apple_item.png", Texture.class);
         manager.load("items/poison_item.png", Texture.class);
 
+        // Música de fondo
+        manager.load("music/background_music.wav", Music.class);
+
+        // Sonidos
+        manager.load("sounds/button.wav", Sound.class);
+        manager.load("sounds/call_supply.wav", Sound.class);
+        manager.load("sounds/gameover.wav", Sound.class);
+        manager.load("sounds/hurt.wav", Sound.class);
+        manager.load("sounds/immunity_collect.wav", Sound.class);
+        manager.load("sounds/level_victory.wav", Sound.class);
+        manager.load("sounds/munching_food.wav", Sound.class);
+        manager.load("sounds/relic_collect.wav", Sound.class);
+        manager.load("sounds/score_collect.wav", Sound.class);
+        manager.load("sounds/poison_collect.mp3", Sound.class);
+
         manager.finishLoading();
+        resourcesLoaded = true;
     }
 
-    public static Texture getTexture(String path) {
-        return manager.get(path, Texture.class);
-    }
+        public static Texture getTexture(String path) {
+            return manager.get(path, Texture.class);
+        }
 
-    public static AssetManager getManager() {
-        return manager;
-    }
+        public static Music getMusic(String path) {
+            return manager.get(path, Music.class);
+        }
 
-    public static void dispose() {
+        public static Sound getSound(String path) {
+            return manager.get(path, Sound.class);
+        }
 
-        manager.dispose();
+        public static AssetManager getManager() {
+            return manager;
+        }
+
+        public static void dispose() {
+            manager.dispose();
+            resourcesLoaded = false;
+        }
     }
-}
