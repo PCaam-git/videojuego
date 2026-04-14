@@ -1,6 +1,6 @@
 package com.svalero.expedition.domain;
 
-public class Deer extends NPC {
+public class Bird extends NPC {
 
     private float width;
     private float height;
@@ -12,7 +12,7 @@ public class Deer extends NPC {
     private float targetX;
     private float targetY;
 
-    public Deer(float x, float y, float speed, float triggerX) {
+    public Bird(float x, float y, float speed, float triggerX) {
 
         super(x, y, speed);
         this.width = 36;

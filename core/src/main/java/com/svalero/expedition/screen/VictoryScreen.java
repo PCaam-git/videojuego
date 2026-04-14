@@ -64,7 +64,7 @@ public class VictoryScreen implements Screen {
         font.draw(batch, "Bonus por Vidas restantes (" + finalPlayerState.getLives() + " x 100): +" + livesBonus, 300, 400);
         font.draw(batch, "Bonus por Energía restante (" + finalPlayerState.getEnergy() + " x 2): +" + energyBonus, 300, 370);
         font.draw(batch, "Bonus por objeto de Inmunidad (" + finalPlayerState.getImmunityCollected() + " x 500): +" + immunityBonus, 300, 340);
-        font.draw(batch, "Penalización Veneno (" + finalPlayerState.getPoisonCollected() + " x 200): -" + poisonPenalty, 300, 310);
+        font.draw(batch, "Penalización Veneno (" + finalPlayerState.getPoisonCollected() + " x 200): -" + poisonPenalty, 220, 310);
 
         // El resultado final
         font.draw(batch, "-----------------------------------", 300, 310);

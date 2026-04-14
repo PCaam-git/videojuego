@@ -11,7 +11,7 @@ import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.Supply;
 import com.svalero.expedition.domain.Guardian;
-import com.svalero.expedition.domain.Deer;
+import com.svalero.expedition.domain.Bird;
 import com.svalero.expedition.domain.ImmunityItem;
 import com.svalero.expedition.domain.ScoreItem;
 import com.svalero.expedition.domain.PoisonItem;
@@ -36,7 +36,7 @@ public class LogicManager {
     private Relic relic;
     private final Supply supply;
     private Guardian guardian;
-    private final Deer deer;
+    private final Bird bird;
     private ScoreItem scoreItem;
     private ImmunityItem immunityItem;
     private PoisonItem poisonItem;
@@ -44,13 +44,13 @@ public class LogicManager {
 
     // timers
     private float guardianDamageTimer; // tiempo de espera entre daños consecutivos.
-    private float deerDamageTimer; //tiempo de espera entre daños consecutivos
+    private float birdDamageTimer; //tiempo de espera entre daños consecutivos
     private float scoreMessageTimer;
     private float supplyCooldownTimer;
     private float supplyUnavailableMessageTimer; // Mensaje ayuda de Frodo no disponible
     private float supplyHealMessageTimer;
     private int lastSupplyHealAmount;
-    private float deerHitMessageTimer;
+    private float birdHitMessageTimer;
     private float immunityMessageTimer;
     private float poisonTimer;
     private float poisonMessageTimer;
@@ -78,20 +78,20 @@ public class LogicManager {
         relic = new Relic(600, 220);
         scoreItem = new ScoreItem(320, 220, 24, 24, 25);
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
-        guardian = new Guardian(500, 140, 100, 150, 300);
+        guardian = new Guardian(500, 140, 100, 150, 280);
         immunityItem = new ImmunityItem(200, 300, 24, 24);
         poisonItem = new PoisonItem(400, 300, 24, 24);
 
-        deer = new Deer(-60, Gdx.graphics.getHeight() - 36, 450, 320);
+        bird = new Bird(-60, Gdx.graphics.getHeight() - 36, 450, 320);
 
         guardianDamageTimer = 0;
-        deerDamageTimer = 0;
+        birdDamageTimer = 0;
         scoreMessageTimer = 0;
         supplyCooldownTimer = 0;
         supplyUnavailableMessageTimer = 0;
         supplyHealMessageTimer = 0;
         lastSupplyHealAmount = 0;
-        deerHitMessageTimer = 0;
+        birdHitMessageTimer = 0;
         immunityMessageTimer = 0;
         poisonTimer = 0;
         poisonMessageTimer = 0;
@@ -201,10 +201,10 @@ public class LogicManager {
                     guardian = new Guardian(x, y, speed, minY, maxY);
                     break;
 
-                case "deer":
+                case "bird":
                     birdStartX = x;
                     birdStartY = y;
-                    deer.resetPosition(x, y);
+                    bird.resetPosition(x, y);
                     break;
 
                 default:
@@ -221,18 +221,18 @@ public class LogicManager {
         handleInput();
 
         updateGuardianDamageTimer(delta);
-        updateDeerDamageTimer(delta);
+        updateBirdDamageTimer(delta);
         updateScoreMessageTimer(delta);
         updateSupplyCooldownTimer(delta);
         updateSupplyUnavailableMessageTimer(delta);
         updateSupplyHealMessageTimer(delta);
-        updateDeerHitMessageTimer(delta);
+        updateBirdHitMessageTimer(delta);
         updateImmunityMessageTimer(delta);
         updatePoisonTimer(delta);
         updatePoisonMessageTimer(delta);
         updateGuardianDeathMessageTimer(delta);
 
-        if (guardianDamageTimer <= 0 && deerDamageTimer <=0) {
+        if (guardianDamageTimer <= 0 && birdDamageTimer <=0) {
             float speedFactor = (poisonTimer > 0) ? POISON_SPEED_FACTOR : 1f;
             player.setSpeedMultiplier(speedFactor);
             movePlayer(delta);
@@ -242,13 +242,13 @@ public class LogicManager {
         supply.update(delta);
         moveSupply(delta);
 
-        if (deer != null && deer.isActive()) {
-            // deer.setTarget(getPlayerHitboxCenterX(), getPlayerHitboxCenterY());
-            deer.update(delta);
-            checkDeerCollision();
+        if (bird != null && bird.isActive()) {
+            // bird.setTarget(getPlayerHitboxCenterX(), getPlayerHitboxCenterY());
+            bird.update(delta);
+            checkBirdCollision();
         }
 
-        resetDeerIfNeeded();
+        resetBirdIfNeeded();
 
         keepPlayerInsideWorld();
         checkRelicCollision();
@@ -266,7 +266,7 @@ public class LogicManager {
     private void handleInput() {
 
         // Si la niña choca con el oso, no puede moverse ni llamar a Frodo
-        if (guardianDamageTimer > 0 || deerDamageTimer > 0) {
+        if (guardianDamageTimer > 0 || birdDamageTimer > 0) {
             player.setDirectionX(0);
             player.setDirectionY(0);
             return;
@@ -499,10 +499,10 @@ public class LogicManager {
         boolean nearY = getPlayerHitboxBottom() < scoreItem.getY() + scoreItem.getHeight() + 80
             && getPlayerHitboxTop() > scoreItem.getY() - 80;
 
-        if (nearX && nearY && !birdTriggered && deer != null && !deer.isActive()) {
+        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
             activateBird();
             birdTriggered = true;
-        } else if ((!nearX || !nearY) && deer != null && !deer.isActive()) {
+        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
             birdTriggered = false;
         }
 
@@ -530,10 +530,10 @@ public class LogicManager {
         boolean nearY = getPlayerHitboxBottom() < immunityItem.getY() + immunityItem.getHeight() + 80
             && getPlayerHitboxTop() > immunityItem.getY() - 80;
 
-        if (nearX && nearY && !birdTriggered && deer != null && !deer.isActive()) {
+        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
             activateBird();
             birdTriggered = true;
-        } else if ((!nearX || !nearY) && deer != null && !deer.isActive()) {
+        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
             birdTriggered = false;
         }
 
@@ -561,10 +561,10 @@ public class LogicManager {
         boolean nearY = getPlayerHitboxBottom() < poisonItem.getY() + poisonItem.getHeight() + 40
             && getPlayerHitboxTop() > poisonItem.getY() - 40;
 
-        if (nearX && nearY && !birdTriggered && deer != null && !deer.isActive()) {
+        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
             activateBird();
             birdTriggered = true;
-        } else if ((!nearX || !nearY) && deer != null && !deer.isActive()) {
+        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
             birdTriggered = false;
         }
 
@@ -583,27 +583,27 @@ public class LogicManager {
     }
 
     private void activateBird() {
-        if (deer == null || deer.isActive()) {
+        if (bird == null || bird.isActive()) {
             return;
         }
 
-        float deerCollisionWidth = 28f;
-        float deerCollisionHeight = 28f;
+        float birdCollisionWidth = 28f;
+        float birdCollisionHeight = 28f;
 
         float playerHitboxLeft = getPlayerHitboxLeft();
         float playerHitboxBottom = getPlayerHitboxBottom();
         float playerHitboxWidth = getPlayerHitboxWidth();
         float playerHitboxHeight = getPlayerHitboxHeight();
 
-        float targetX = playerHitboxLeft + (playerHitboxWidth - deerCollisionWidth) / 2f
-            - (deer.getWidth() - deerCollisionWidth) / 2f;
+        float targetX = playerHitboxLeft + (playerHitboxWidth - birdCollisionWidth) / 2f
+            - (bird.getWidth() - birdCollisionWidth) / 2f;
 
-        float targetY = playerHitboxBottom + (playerHitboxHeight - deerCollisionHeight) / 2f
-            - (deer.getHeight() - deerCollisionHeight) / 2f;
+        float targetY = playerHitboxBottom + (playerHitboxHeight - birdCollisionHeight) / 2f
+            - (bird.getHeight() - birdCollisionHeight) / 2f;
 
-        deer.resetPosition(birdStartX, birdStartY);
-        deer.setTarget(targetX, targetY);
-        deer.activate();
+        bird.resetPosition(birdStartX, birdStartY);
+        bird.setTarget(targetX, targetY);
+        bird.activate();
     }
 
     private void checkSupplyCollision() {
@@ -654,37 +654,37 @@ public class LogicManager {
         }
     }
 
-    private void checkDeerCollision() {
-        float deerCollisionWidth = 28f;
-        float deerCollisionHeight = 28f;
+    private void checkBirdCollision() {
+        float birdCollisionWidth = 28f;
+        float birdCollisionHeight = 28f;
 
-        float deerLeft = deer.getX() + (deer.getWidth() - deerCollisionWidth) / 2f;
-        float deerRight = deerLeft + deerCollisionWidth;
-        float deerBottom = deer.getY() + (deer.getHeight() - deerCollisionHeight) / 2f;
-        float deerTop = deerBottom + deerCollisionHeight;
+        float birdLeft = bird.getX() + (bird.getWidth() - birdCollisionWidth) / 2f;
+        float birdRight = birdLeft + birdCollisionWidth;
+        float birdBottom = bird.getY() + (bird.getHeight() - birdCollisionHeight) / 2f;
+        float birdTop = birdBottom + birdCollisionHeight;
 
-        boolean collisionX = getPlayerHitboxLeft() <= deerRight
-            && getPlayerHitboxRight() >= deerLeft;
+        boolean collisionX = getPlayerHitboxLeft() <= birdRight
+            && getPlayerHitboxRight() >= birdLeft;
 
-        boolean collisionY = getPlayerHitboxBottom() <= deerTop
-            && getPlayerHitboxTop() >= deerBottom;
+        boolean collisionY = getPlayerHitboxBottom() <= birdTop
+            && getPlayerHitboxTop() >= birdBottom;
 
-        if (collisionX && collisionY && deerDamageTimer <= 0) {
+        if (collisionX && collisionY && birdDamageTimer <= 0) {
             int damage = player.getEnergy() / 2;
             player.setEnergy(player.getEnergy() - damage);
 
             player.setScore(player.getScore() - 15);
 
-            deerDamageTimer = 1f;
-            deerHitMessageTimer = 1.5f;
+            birdDamageTimer = 1f;
+            birdHitMessageTimer = 1.5f;
 
-            if (deer.isMovingRight()) {
+            if (bird.isMovingRight()) {
                 pushPlayerBackSafely(64f, true);
             } else {
                 pushPlayerBackSafely(64f, false);
             }
 
-            deer.resetPosition(birdStartX, birdStartY);
+            bird.resetPosition(birdStartX, birdStartY);
 
             keepPlayerInsideWorld();
 
@@ -698,18 +698,18 @@ public class LogicManager {
         }
     }
 
-    private void resetDeerIfNeeded() {
-        if (deer == null || !deer.isActive()) {
+    private void resetBirdIfNeeded() {
+        if (bird == null || !bird.isActive()) {
             return;
         }
 
-        boolean outRight = deer.getX() > worldWidth + 60;
-        boolean outLeft = deer.getX() + deer.getWidth() < -60;
-        boolean outBottom = deer.getY() + deer.getHeight() < -60;
-        boolean outTop = deer.getY() > worldHeight + 60;
+        boolean outRight = bird.getX() > worldWidth + 60;
+        boolean outLeft = bird.getX() + bird.getWidth() < -60;
+        boolean outBottom = bird.getY() + bird.getHeight() < -60;
+        boolean outTop = bird.getY() > worldHeight + 60;
 
         if (outRight || outLeft || outBottom || outTop) {
-            deer.resetPosition(birdStartX, birdStartY);
+            bird.resetPosition(birdStartX, birdStartY);
             birdTriggered = false;
         }
     }
@@ -765,18 +765,18 @@ public class LogicManager {
 
         supply.reset(supplyStartX, supplyStartY);
 
-        if (deer != null) {
-            deer.resetPosition(birdStartX, birdStartY);
+        if (bird != null) {
+            bird.resetPosition(birdStartX, birdStartY);
         }
 
         birdTriggered = false;
 
         guardianDamageTimer = 0;
-        deerDamageTimer = 0;
+        birdDamageTimer = 0;
         supplyCooldownTimer = 0;
         supplyUnavailableMessageTimer = 0;
         supplyHealMessageTimer = 0;
-        deerHitMessageTimer = 0;
+        birdHitMessageTimer = 0;
         immunityMessageTimer = 0;
         poisonTimer = 0;
         poisonMessageTimer = 0;
@@ -811,9 +811,9 @@ public class LogicManager {
         }
     }
 
-    private void updateDeerDamageTimer(float delta) {
-        if (deerDamageTimer > 0) {
-            deerDamageTimer -= delta;
+    private void updateBirdDamageTimer(float delta) {
+        if (birdDamageTimer > 0) {
+            birdDamageTimer -= delta;
         }
     }
 
@@ -841,9 +841,9 @@ public class LogicManager {
         }
     }
 
-    private void updateDeerHitMessageTimer(float delta) {
-        if (deerHitMessageTimer > 0) {
-            deerHitMessageTimer -= delta;
+    private void updateBirdHitMessageTimer(float delta) {
+        if (birdHitMessageTimer > 0) {
+            birdHitMessageTimer -= delta;
         }
     }
 
@@ -893,8 +893,8 @@ public class LogicManager {
         return guardian;
     }
 
-    public Deer getDeer() {
-        return deer;
+    public Bird getBird() {
+        return bird;
     }
 
     public ImmunityItem getImmunityItem() {
@@ -933,8 +933,8 @@ public class LogicManager {
         return lastSupplyHealAmount;
     }
 
-    public float getDeerHitMessageTimer() {
-        return deerHitMessageTimer;
+    public float getBirdHitMessageTimer() {
+        return birdHitMessageTimer;
     }
 
     public float getImmunityMessageTimer() {
