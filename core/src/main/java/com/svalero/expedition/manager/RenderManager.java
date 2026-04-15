@@ -97,10 +97,14 @@ public class RenderManager {
         font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 410);
         font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 380);
         font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 350);
-        font.draw(batch, "Nivel: 1", 50, 320);
+        font.draw(batch, "Nivel: " + logicManager.getCurrentLevel(), 50, 320);
 
         if (logicManager.getGuardianDeathMessageTimer() > 0) {
-            font.draw(batch, "¡El oso te ha atacado! Quizás si le llevas comida..", 50, 100);
+            if (logicManager.getCurrentLevel() == 1) {
+                font.draw(batch, "¡El oso te ha atacado! Quizás si le llevas comida..", 50, 100);
+            } else {
+                font.draw(batch, "¡El conejo te ha golpeado en pleno salto!", 50, 100);
+            }
         }
 
         if (logicManager.getScoreMessageTimer() > 0) {
@@ -116,11 +120,19 @@ public class RenderManager {
         }
 
         if (logicManager.getBirdHitMessageTimer() > 0) {
-            font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 50, 100);
+            if (logicManager.getCurrentLevel() == 1) {
+                font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 50, 100);
+            } else {
+                font.draw(batch, "¡Oh, oh! La avispa ha irrumpido en la zona y te ha atacado!", 50, 100);
+            }
         }
 
         if (logicManager.getImmunityMessageTimer() > 0) {
-            font.draw(batch, "¡SUERTE! Con esta manzana podrás acceder a la cueva sin que te ataque el oso", 50, 100);
+            if (logicManager.getCurrentLevel() == 1) {
+                font.draw(batch, "¡SUERTE! Con esta manzana podrás acceder a la cueva sin que te ataque el oso", 50, 100);
+            } else {
+                font.draw(batch, "¡IMPULSO! Esta fruta aumenta tu velocidad durante unos segundos", 50, 100);
+            }
         }
 
         batch.end();

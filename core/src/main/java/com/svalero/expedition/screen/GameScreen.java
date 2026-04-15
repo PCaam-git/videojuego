@@ -28,7 +28,7 @@ public class GameScreen implements Screen {
     public GameScreen(ExpeditionGame game) {
         this.game = game;
         this.configurationManager = new ConfigurationManager();
-        this.logicManager = new LogicManager();
+        this.logicManager = new LogicManager(game.getCurrentLevel());
         this.levelManager = new LevelManager();
         this.paused = false;
     }

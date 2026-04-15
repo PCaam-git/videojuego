@@ -32,6 +32,9 @@ public class LogicManager {
     private static final float POISON_DURATION = 5f;
     private static final float POISON_SPEED_FACTOR = 0.2f;
 
+    private static final float SPEED_BOOST_DURATION = 4f;
+    private static final float SPEED_BOOST_FACTOR = 1.8f;
+
     private final Player player;
     private Relic relic;
     private final Supply supply;
@@ -66,6 +69,11 @@ public class LogicManager {
     private float supplyStartY;
     private float birdStartX;
     private float birdStartY;
+    private float birdZoneX;
+    private float birdZoneY;
+    private float birdZoneWidth;
+    private float birdZoneHeight;
+    private boolean birdZoneConfigured;
 
     private float worldWidth;
     private float worldHeight;
@@ -73,10 +81,14 @@ public class LogicManager {
     private float tileWidth;
     private float tileHeight;
 
+    private final int currentLevel;
+
+    private float speedBoostTimer;
 
     // Ubicación
-    public LogicManager() {
+    public LogicManager(int currentLevel) {
         configurationManager = new ConfigurationManager();
+        this.currentLevel = currentLevel;
 
         player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
         relic = new Relic(600, 220);
@@ -99,6 +111,7 @@ public class LogicManager {
         immunityMessageTimer = 0;
         poisonTimer = 0;
         poisonMessageTimer = 0;
+        speedBoostTimer= 0;
         guardianDeathMessageTimer = 0;
         birdTriggered = false;
 
@@ -112,6 +125,11 @@ public class LogicManager {
         supplyStartY = SUPPLY_START_Y;
         birdStartX = -60;
         birdStartY = Gdx.graphics.getHeight() - 36;
+        birdZoneX = 0;
+        birdZoneY = 0;
+        birdZoneWidth = 0;
+        birdZoneHeight = 0;
+        birdZoneConfigured = false;
     }
 
     // -- SETUP -- Métodos de configuración inicial
@@ -195,20 +213,53 @@ public class LogicManager {
 
                 case "guardian":
                     Object propSpeed = object.getProperties().get("speed");
-                    Object propMinY = object.getProperties().get("minY");
-                    Object propMaxY = object.getProperties().get("maxY");
 
                     float speed = (propSpeed != null) ? ((Number) propSpeed).floatValue() : 100f;
-                    float minY = (propMinY != null) ? ((Number) propMinY).floatValue() * scale : 240 * scale;
-                    float maxY = (propMaxY != null) ? ((Number) propMaxY).floatValue() * scale : 280 * scale;
 
-                    guardian = new Guardian(x, y, speed, minY, maxY);
+                    if (currentLevel == 2) {
+                        Object propPointBX = object.getProperties().get("pointBX");
+                        Object propPointBY = object.getProperties().get("pointBY");
+                        Object propPointCX = object.getProperties().get("pointCX");
+                        Object propPointCY = object.getProperties().get("pointCY");
+                        Object propWaitTime = object.getProperties().get("waitTime");
+
+                        float pointBX = (propPointBX != null) ? ((Number) propPointBX).floatValue() * scale : x;
+                        float pointBY = (propPointBY != null) ? ((Number) propPointBY).floatValue() * scale : y;
+                        float pointCX = (propPointCX != null) ? ((Number) propPointCX).floatValue() * scale : x;
+                        float pointCY = (propPointCY != null) ? ((Number) propPointCY).floatValue() * scale : y;
+                        float waitTime = (propWaitTime != null) ? ((Number) propWaitTime).floatValue() : 1f;
+
+                        guardian = new Guardian(x, y, speed, pointBX, pointBY, pointCX, pointCY, waitTime);
+                    } else {
+                        Object propMinY = object.getProperties().get("minY");
+                        Object propMaxY = object.getProperties().get("maxY");
+
+                        float minY = (propMinY != null) ? ((Number) propMinY).floatValue() * scale : 240 * scale;
+                        float maxY = (propMaxY != null) ? ((Number) propMaxY).floatValue() * scale : 280 * scale;
+
+                        guardian = new Guardian(x, y, speed, minY, maxY);
+                    }
                     break;
 
                 case "bird":
                     birdStartX = x;
                     birdStartY = y;
                     bird.resetPosition(x, y);
+                    break;
+
+                case "birdZone":
+                    Object propWidth = object.getProperties().get("width");
+                    Object propHeight = object.getProperties().get("height");
+
+                    if (propWidth != null && propHeight != null) {
+                        birdZoneX = x;
+                        birdZoneWidth = ((Number) propWidth).floatValue() * scale;
+                        birdZoneHeight = ((Number) propHeight).floatValue() * scale;
+
+                        birdZoneY = y - birdZoneHeight;
+
+                        birdZoneConfigured = true;
+                    }
                     break;
 
                 default:
@@ -227,6 +278,54 @@ public class LogicManager {
         ResourceManager.getSound(path).play();
     }
 
+    private void updateBirdZoneTrigger() {
+        if (currentLevel != 2) {
+            return;
+        }
+
+        if (!birdZoneConfigured || bird == null || bird.isActive()) {
+            return;
+        }
+
+        float playerCenterX = getPlayerHitboxCenterX();
+        float playerCenterY = getPlayerHitboxCenterY();
+
+        boolean insideZoneX = playerCenterX >= birdZoneX && playerCenterX <= birdZoneX + birdZoneWidth;
+        boolean insideZoneY = playerCenterY >= birdZoneY && playerCenterY <= birdZoneY + birdZoneHeight;
+
+        if (insideZoneX && insideZoneY && !birdTriggered) {
+            activateBird();
+            birdTriggered = true;
+        }
+
+        if ((!insideZoneX || !insideZoneY) && !bird.isActive()) {
+            birdTriggered = false;
+        }
+    }
+
+    private void updateBirdTriggerByItem(float itemX, float itemY, float itemWidth, float itemHeight, float triggerDistance) {
+        if (currentLevel != 1) {
+            return;
+        }
+
+        if (bird == null) {
+            return;
+        }
+
+        boolean nearX = getPlayerHitboxLeft() < itemX + itemWidth + triggerDistance
+            && getPlayerHitboxRight() > itemX - triggerDistance;
+
+        boolean nearY = getPlayerHitboxBottom() < itemY + itemHeight + triggerDistance
+            && getPlayerHitboxTop() > itemY - triggerDistance;
+
+        if (nearX && nearY && !birdTriggered && !bird.isActive()) {
+            activateBird();
+            birdTriggered = true;
+        } else if ((!nearX || !nearY) && !bird.isActive()) {
+            birdTriggered = false;
+        }
+    }
+
 
     // --- CORE LOOP --- Lógica que se ejecuta continuamente
 
@@ -243,10 +342,18 @@ public class LogicManager {
         updateImmunityMessageTimer(delta);
         updatePoisonTimer(delta);
         updatePoisonMessageTimer(delta);
+        updateSpeedBoostTimer(delta);
         updateGuardianDeathMessageTimer(delta);
 
-        if (guardianDamageTimer <= 0 && birdDamageTimer <=0) {
-            float speedFactor = (poisonTimer > 0) ? POISON_SPEED_FACTOR : 1f;
+        if (guardianDamageTimer <= 0 && birdDamageTimer <= 0) {
+            float speedFactor = 1f;
+
+            if (poisonTimer > 0) {
+                speedFactor = POISON_SPEED_FACTOR;
+            } else if (speedBoostTimer > 0) {
+                speedFactor = SPEED_BOOST_FACTOR;
+            }
+
             player.setSpeedMultiplier(speedFactor);
             movePlayer(delta);
             guardian.update(delta);
@@ -254,6 +361,7 @@ public class LogicManager {
 
         supply.update(delta);
         moveSupply(delta);
+        updateBirdZoneTrigger();
 
         if (bird != null && bird.isActive()) {
             // bird.setTarget(getPlayerHitboxCenterX(), getPlayerHitboxCenterY());
@@ -511,18 +619,13 @@ public class LogicManager {
             return;
         }
 
-        boolean nearX = getPlayerHitboxLeft() < scoreItem.getX() + scoreItem.getWidth() + 80
-            && getPlayerHitboxRight() > scoreItem.getX() - 80;
-
-        boolean nearY = getPlayerHitboxBottom() < scoreItem.getY() + scoreItem.getHeight() + 80
-            && getPlayerHitboxTop() > scoreItem.getY() - 80;
-
-        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
-            activateBird();
-            birdTriggered = true;
-        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
-            birdTriggered = false;
-        }
+        updateBirdTriggerByItem(
+            scoreItem.getX(),
+            scoreItem.getY(),
+            scoreItem.getWidth(),
+            scoreItem.getHeight(),
+            80f
+        );
 
         boolean collisionX = getPlayerHitboxLeft() < scoreItem.getX() + scoreItem.getWidth()
             && getPlayerHitboxRight() > scoreItem.getX();
@@ -545,18 +648,26 @@ public class LogicManager {
             return;
         }
 
-        boolean nearX = getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth() + 80
-            && getPlayerHitboxRight() > immunityItem.getX() - 80;
+        updateBirdTriggerByItem(
+            immunityItem.getX(),
+            immunityItem.getY(),
+            immunityItem.getWidth(),
+            immunityItem.getHeight(),
+            80f
+        );
 
-        boolean nearY = getPlayerHitboxBottom() < immunityItem.getY() + immunityItem.getHeight() + 80
-            && getPlayerHitboxTop() > immunityItem.getY() - 80;
-
-        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
-            activateBird();
-            birdTriggered = true;
-        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
-            birdTriggered = false;
-        }
+//        boolean nearX = getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth() + 80
+//            && getPlayerHitboxRight() > immunityItem.getX() - 80;
+//
+//        boolean nearY = getPlayerHitboxBottom() < immunityItem.getY() + immunityItem.getHeight() + 80
+//            && getPlayerHitboxTop() > immunityItem.getY() - 80;
+//
+//        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
+//            activateBird();
+//            birdTriggered = true;
+//        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
+//            birdTriggered = false;
+//        }
 
         boolean collisionX = getPlayerHitboxRight() > immunityItem.getX()
             && getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth();
@@ -566,8 +677,15 @@ public class LogicManager {
 
         if (collisionX && collisionY) {
             immunityItem.setCollected(true);
-            player.addImmunity();
             immunityMessageTimer = 1.5f;
+
+            if (currentLevel == 1) {
+                player.addImmunity();
+            } else {
+                speedBoostTimer = SPEED_BOOST_DURATION;
+                // Conserva el contador para la puntuación final
+                player.addImmunity();
+            }
 
             // Sonido al recoger el item de inmunidad
             playSound("sounds/immunity_collect.wav");
@@ -579,18 +697,25 @@ public class LogicManager {
             return;
         }
 
-        boolean nearX = getPlayerHitboxLeft() < poisonItem.getX() + poisonItem.getWidth() + 40
-            && getPlayerHitboxRight() > poisonItem.getX() - 40;
-
-        boolean nearY = getPlayerHitboxBottom() < poisonItem.getY() + poisonItem.getHeight() + 40
-            && getPlayerHitboxTop() > poisonItem.getY() - 40;
-
-        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
-            activateBird();
-            birdTriggered = true;
-        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
-            birdTriggered = false;
-        }
+        updateBirdTriggerByItem(
+            poisonItem.getX(),
+            poisonItem.getY(),
+            poisonItem.getWidth(),
+            poisonItem.getHeight(),
+            40f
+        );
+//        boolean nearX = getPlayerHitboxLeft() < poisonItem.getX() + poisonItem.getWidth() + 40
+//            && getPlayerHitboxRight() > poisonItem.getX() - 40;
+//
+//        boolean nearY = getPlayerHitboxBottom() < poisonItem.getY() + poisonItem.getHeight() + 40
+//            && getPlayerHitboxTop() > poisonItem.getY() - 40;
+//
+//        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
+//            activateBird();
+//            birdTriggered = true;
+//        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
+//            birdTriggered = false;
+//        }
 
         boolean collisionX = getPlayerHitboxLeft() < poisonItem.getX() + poisonItem.getWidth()
             && getPlayerHitboxRight() > poisonItem.getX();
@@ -673,8 +798,15 @@ public class LogicManager {
         boolean collisionWithGuardian = (playerCollisionX && playerCollisionY)
             || (supplyCollisionX && supplyCollisionY);
 
-        if (collisionWithGuardian) {
-            if (player.getImmunityCollected() == 0 && guardianDamageTimer <= 0) {
+        if (collisionWithGuardian && guardianDamageTimer <= 0) {
+            // Nivel 1: immunityItem permite pasar a través del guadián
+            if (currentLevel == 1) {
+                if (player.getImmunityCollected() == 0) {
+                    killPlayerByGuardian();
+                    guardianDamageTimer = 1.5f;
+                }
+            } else {
+                // Nivel 2: el boost de velocidad no evita el daño del guardián
                 killPlayerByGuardian();
                 guardianDamageTimer = 1.5f;
             }
@@ -904,6 +1036,12 @@ public class LogicManager {
         }
     }
 
+    private void updateSpeedBoostTimer(float delta) {
+        if (speedBoostTimer > 0) {
+            speedBoostTimer -= delta;
+        }
+    }
+
     // --- GETTERS ---
 
     public Player getPlayer() {
@@ -976,5 +1114,9 @@ public class LogicManager {
 
     public float getPoisonMessageTimer() {
         return poisonMessageTimer;
+    }
+
+    public int getCurrentLevel() {
+        return currentLevel;
     }
 }
