@@ -44,6 +44,8 @@ public class MainMenuScreen implements Screen {
 
         // Cambia a la pantalla de juego
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            // todas las partidas comienzan desde el nivel 1
+            game.resetToFirstLevel();
             game.setScreen(new GameScreen(game));
         }
 

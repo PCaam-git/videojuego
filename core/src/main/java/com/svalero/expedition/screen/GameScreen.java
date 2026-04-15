@@ -41,7 +41,8 @@ public class GameScreen implements Screen {
     public void show() {
         ResourceManager.loadAllResources();
 
-        levelManager.loadCurrentLevel();
+        // Carga el TMX correspondiente al nivel actual del juego
+        levelManager.loadCurrentLevel(game.getCurrentLevel());
         logicManager.loadMapObjects(levelManager.getObjectsLayer());
         logicManager.setWorldSize(levelManager.getWorldWidth(), levelManager.getWorldHeight());
         logicManager.setCollisionLayer(
