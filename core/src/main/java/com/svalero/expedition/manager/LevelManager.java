@@ -22,9 +22,17 @@ public class LevelManager {
         this.batch = new SpriteBatch();
     }
 
-    public void loadCurrentLevel() {
+    public void loadCurrentLevel(int currentLevel) {
         TmxMapLoader loader = new TmxMapLoader();
-        map = loader.load("level_01/mapa_nivel_01.tmx");
+
+        String levelPath;
+        if (currentLevel == 1) {
+            levelPath = "level_01/mapa_nivel_01.tmx";
+        } else {
+            levelPath = "level_02/mapa_nivel_02.tmx";
+        }
+
+        map = loader.load(levelPath);
 
         collisionLayer = (TiledMapTileLayer) map.getLayers().get("Terrain");
         objectsLayer = map.getLayers().get("Objects");

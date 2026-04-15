@@ -68,7 +68,11 @@ public class VictoryScreen implements Screen {
 
         batch.begin();
 
-        font.draw(batch, "¡NIVEL COMPLETADO!", 150, 300);
+        if (game.getCurrentLevel() == 1) {
+            font.draw(batch, "¡NIVEL 1 COMPLETADO!", 100, 300);
+        } else {
+            font.draw(batch, "¡NIVEL 2 COMPLETADO!", 100, 300);
+        }
 
         // Recuento desglosado
         font.draw(batch, "Puntuación de objetos: " + baseScore, 300, 430);
@@ -78,15 +82,27 @@ public class VictoryScreen implements Screen {
         font.draw(batch, "Penalización por veneno (" + finalPlayerState.getPoisonCollected() + " x 200): -" + poisonPenalty, 300, 310);
 
         // Resultado final
-        font.draw(batch, "-----------------------------------", 300, 310);
-        font.draw(batch, "PUNTUACIÓN TOTAL: " + totalScore, 300, 280);
+        font.draw(batch, "-----------------------------------", 300, 280);
+        font.draw(batch, "PUNTUACIÓN TOTAL: " + totalScore, 300, 250);
 
-        font.draw(batch, "Pulsa ENTER para continuar", 300, 150);
+        if (game.getCurrentLevel() == 1) {
+            font.draw(batch, "Pulsa ENTER para jugar el nivel 2", 250, 150);
+        } else {
+            font.draw(batch, "Pulsa ENTER para volver al menu principal", 210, 150);
+        }
 
         batch.end();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            game.setScreen(new MainMenuScreen(game));
+            if (game.getCurrentLevel() == 1) {
+                // Avanza al nivel 2
+                game.goToNextLevel();
+                game.setScreen(new GameScreen(game));
+            } else {
+                // Al terminar el nivel 2, reinicia la progresión y vuelve al menú
+                game.resetToFirstLevel();
+                game.setScreen(new MainMenuScreen(game));
+            }
         }
     }
 
