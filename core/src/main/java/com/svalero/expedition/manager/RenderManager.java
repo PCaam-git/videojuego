@@ -84,7 +84,7 @@ public class RenderManager {
         batch.draw(guardianTexture, guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
 
         Bird bird = logicManager.getBird();
-        if (bird.isActive()) {
+        if (bird.isVisible()) {
             batch.draw(birdTexture, bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight());
         }
 
