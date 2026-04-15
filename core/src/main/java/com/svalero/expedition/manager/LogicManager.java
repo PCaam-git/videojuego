@@ -35,6 +35,8 @@ public class LogicManager {
     private static final float SPEED_BOOST_DURATION = 4f;
     private static final float SPEED_BOOST_FACTOR = 1.8f;
 
+    private static final float LEVEL_2_BIRD_SPEED = 250f;
+
     private final Player player;
     private Relic relic;
     private final Supply supply;
@@ -61,6 +63,7 @@ public class LogicManager {
     private float poisonMessageTimer;
     private float guardianDeathMessageTimer;
     private boolean birdTriggered;
+    private float birdAttackCooldownTimer;
 
     // posiciones iniciales cargadas desdeTiled
     private float playerStartX;
@@ -98,7 +101,8 @@ public class LogicManager {
         immunityItem = new ImmunityItem(200, 300, 24, 24);
         poisonItem = new PoisonItem(400, 300, 24, 24);
 
-        bird = new Bird(-60, Gdx.graphics.getHeight() - 36, 450, 320);
+        float birdSpeed = (currentLevel == 2) ? LEVEL_2_BIRD_SPEED : 450f;
+        bird = new Bird(-60, Gdx.graphics.getHeight() - 36, birdSpeed, 320);
 
         guardianDamageTimer = 0;
         birdDamageTimer = 0;
@@ -114,6 +118,7 @@ public class LogicManager {
         speedBoostTimer= 0;
         guardianDeathMessageTimer = 0;
         birdTriggered = false;
+        birdAttackCooldownTimer = 0;
 
         worldWidth = Gdx.graphics.getWidth();
         worldHeight = Gdx.graphics.getHeight();
@@ -130,6 +135,11 @@ public class LogicManager {
         birdZoneWidth = 0;
         birdZoneHeight = 0;
         birdZoneConfigured = false;
+
+        if (currentLevel == 2) {
+            bird.setIdlePosition(birdStartX, birdStartY);
+            bird.setAlwaysVisible(true);
+        }
     }
 
     // -- SETUP -- Métodos de configuración inicial
@@ -244,7 +254,14 @@ public class LogicManager {
                 case "bird":
                     birdStartX = x;
                     birdStartY = y;
-                    bird.resetPosition(x, y);
+
+                    if (currentLevel == 2) {
+                        bird.setIdlePosition(x, y);
+                        bird.setAlwaysVisible(true);
+                    } else {
+                        bird.resetPosition(x, y);
+                        bird.setAlwaysVisible(false);
+                    }
                     break;
 
                 case "birdZone":
@@ -283,7 +300,7 @@ public class LogicManager {
             return;
         }
 
-        if (!birdZoneConfigured || bird == null || bird.isActive()) {
+        if (!birdZoneConfigured || bird == null) {
             return;
         }
 
@@ -293,12 +310,12 @@ public class LogicManager {
         boolean insideZoneX = playerCenterX >= birdZoneX && playerCenterX <= birdZoneX + birdZoneWidth;
         boolean insideZoneY = playerCenterY >= birdZoneY && playerCenterY <= birdZoneY + birdZoneHeight;
 
-        if (insideZoneX && insideZoneY && !birdTriggered) {
+        if (insideZoneX && insideZoneY && bird.isIdle() && birdAttackCooldownTimer <= 0) {
             activateBird();
             birdTriggered = true;
         }
 
-        if ((!insideZoneX || !insideZoneY) && !bird.isActive()) {
+        if (!insideZoneX || !insideZoneY) {
             birdTriggered = false;
         }
     }
@@ -342,6 +359,8 @@ public class LogicManager {
         updateImmunityMessageTimer(delta);
         updatePoisonTimer(delta);
         updatePoisonMessageTimer(delta);
+        updateBirdDamageTimer(delta);
+        updateBirdAttackCooldownTimer(delta);
         updateSpeedBoostTimer(delta);
         updateGuardianDeathMessageTimer(delta);
 
@@ -753,9 +772,7 @@ public class LogicManager {
         float targetY = playerHitboxBottom + (playerHitboxHeight - birdCollisionHeight) / 2f
             - (bird.getHeight() - birdCollisionHeight) / 2f;
 
-        bird.resetPosition(birdStartX, birdStartY);
-        bird.setTarget(targetX, targetY);
-        bird.activate();
+        bird.activateAttack(targetX, targetY);
     }
 
     private void checkSupplyCollision() {
@@ -845,7 +862,9 @@ public class LogicManager {
                 pushPlayerBackSafely(64f, false);
             }
 
-            bird.resetPosition(birdStartX, birdStartY);
+            if (currentLevel == 2) {
+                birdAttackCooldownTimer = 2.5f;
+            }
 
             keepPlayerInsideWorld();
 
@@ -870,8 +889,15 @@ public class LogicManager {
         boolean outTop = bird.getY() > worldHeight + 60;
 
         if (outRight || outLeft || outBottom || outTop) {
-            bird.resetPosition(birdStartX, birdStartY);
-            birdTriggered = false;
+            if (currentLevel == 2) {
+                bird.setIdlePosition(birdStartX, birdStartY);
+                bird.setAlwaysVisible(true);
+                birdAttackCooldownTimer = 2.5f;
+            } else {
+                bird.resetPosition(birdStartX, birdStartY);
+                bird.setAlwaysVisible(false);
+                birdTriggered = false;
+            }
         }
     }
 
@@ -927,10 +953,17 @@ public class LogicManager {
         supply.reset(supplyStartX, supplyStartY);
 
         if (bird != null) {
-            bird.resetPosition(birdStartX, birdStartY);
+            if (currentLevel == 2) {
+                bird.setIdlePosition(birdStartX, birdStartY);
+                bird.setAlwaysVisible(true);
+            } else {
+                bird.resetPosition(birdStartX, birdStartY);
+                bird.setAlwaysVisible(false);
+            }
         }
 
         birdTriggered = false;
+        birdAttackCooldownTimer = 0;
 
         guardianDamageTimer = 0;
         birdDamageTimer = 0;
@@ -1039,6 +1072,12 @@ public class LogicManager {
     private void updateSpeedBoostTimer(float delta) {
         if (speedBoostTimer > 0) {
             speedBoostTimer -= delta;
+        }
+    }
+
+    private void updateBirdAttackCooldownTimer(float delta) {
+        if (birdAttackCooldownTimer > 0) {
+            birdAttackCooldownTimer -= delta;
         }
     }
 
