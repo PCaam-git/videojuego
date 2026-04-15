@@ -135,6 +135,10 @@ public class RenderManager {
             }
         }
 
+        if (logicManager.getFriendMessageTimer() > 0) {
+            font.draw(batch, "¡Ya casi has llegado! Busca tu recompensa en una de las casas", 50, 70);
+        }
+
         batch.end();
     }
 
