@@ -430,6 +430,9 @@ public class LogicManager {
             }
 
             player.setSpeedMultiplier(speedFactor);
+
+            player.updateAnimationState(delta);
+
             movePlayer(delta);
             guardian.update(delta);
         }

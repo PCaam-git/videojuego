@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
 
 public class ResourceManager {
 
@@ -19,8 +21,8 @@ public class ResourceManager {
             return;
         }
 
-        //Texturas
-        manager.load("player/player_idle.png", Texture.class);
+        // Texturas y atlas
+        manager.load("player/player.atlas", TextureAtlas.class);
         manager.load("items/egg_item.png", Texture.class);
         manager.load("dog/dog_idle.png", Texture.class);
         manager.load("bear/bear_idle.png", Texture.class);
@@ -57,34 +59,46 @@ public class ResourceManager {
         resourcesLoaded = true;
     }
 
-        public static Texture getTexture(String path) {
-            return manager.get(path, Texture.class);
-        }
-
-        public static Texture getWhitePixelTexture() {
-            return whitePixelTexture;
-        }
-
-        public static Music getMusic(String path) {
-            return manager.get(path, Music.class);
-        }
-
-        public static Sound getSound(String path) {
-            return manager.get(path, Sound.class);
-        }
-
-        public static AssetManager getManager() {
-            return manager;
-        }
-
-        public static void dispose() {
-            manager.dispose();
-
-            if (whitePixelTexture != null) {
-                whitePixelTexture.dispose();
-                whitePixelTexture = null;
-            }
-
-            resourcesLoaded = false;
-        }
+    public static Texture getTexture(String path) {
+        return manager.get(path, Texture.class);
     }
+
+    public static TextureAtlas getAtlas(String path) {
+        return manager.get(path, TextureAtlas.class);
+    }
+
+    public static TextureRegion getRegion(String atlasPath, String regionName) {
+        return getAtlas(atlasPath).findRegion(regionName);
+    }
+
+    public static Array<TextureAtlas.AtlasRegion> getRegions(String atlasPath, String regionName) {
+        return getAtlas(atlasPath).findRegions(regionName);
+    }
+
+    public static Texture getWhitePixelTexture() {
+        return whitePixelTexture;
+    }
+
+    public static Music getMusic(String path) {
+        return manager.get(path, Music.class);
+    }
+
+    public static Sound getSound(String path) {
+        return manager.get(path, Sound.class);
+    }
+
+    public static AssetManager getManager() {
+        return manager;
+    }
+
+    public static void dispose() {
+        manager.dispose();
+
+        if (whitePixelTexture != null) {
+            whitePixelTexture.dispose();
+            whitePixelTexture = null;
+        }
+
+        resourcesLoaded = false;
+    }
+}

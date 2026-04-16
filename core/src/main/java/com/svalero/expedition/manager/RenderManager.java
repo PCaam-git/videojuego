@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Matrix4;
 
 import com.svalero.expedition.domain.Player;
@@ -17,12 +19,15 @@ import com.svalero.expedition.domain.PoisonItem;
 
 public class RenderManager {
 
+    private static final float PLAYER_ANIMATION_FRAME_DURATION = 0.12f;
+    private static final String PLAYER_ATLAS_PATH = "player/player.atlas";
+
     private final SpriteBatch batch;
     private final LogicManager logicManager;
     private final BitmapFont font;
     private final CameraManager cameraManager;
     private final Matrix4 hudMatrix;
-    private final Texture playerTexture;
+
     private final Texture scoreItemTexture;
     private final Texture supplyTexture;
     private final Texture guardianTexture;
@@ -31,13 +36,25 @@ public class RenderManager {
     private final Texture immunityItemTexture;
     private final Texture poisonItemTexture;
 
+    // Idle del player
+    private final TextureRegion playerIdleDown;
+    private final TextureRegion playerIdleUp;
+    private final TextureRegion playerIdleLeft;
+    private final TextureRegion playerIdleRight;
+
+    // Run del player
+    private final Animation<TextureRegion> playerRunDownAnimation;
+    private final Animation<TextureRegion> playerRunUpAnimation;
+    private final Animation<TextureRegion> playerRunLeftAnimation;
+    private final Animation<TextureRegion> playerRunRightAnimation;
+
     public RenderManager(SpriteBatch batch, LogicManager logicManager, CameraManager cameraManager) {
         this.batch = batch;
         this.logicManager = logicManager;
         this.font = new BitmapFont();
         this.cameraManager = cameraManager;
         this.hudMatrix = new Matrix4();
-        this.playerTexture = ResourceManager.getTexture("player/player_idle.png");
+
         this.scoreItemTexture = ResourceManager.getTexture("items/egg_item.png");
         this.supplyTexture = ResourceManager.getTexture("dog/dog_idle.png");
         this.guardianTexture = ResourceManager.getTexture("bear/bear_idle.png");
@@ -45,6 +62,46 @@ public class RenderManager {
         this.birdTexture = ResourceManager.getTexture("bird/bird_idle.png");
         this.immunityItemTexture = ResourceManager.getTexture("items/apple_item.png");
         this.poisonItemTexture = ResourceManager.getTexture("items/apple_item.png");
+
+        this.playerIdleDown = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_down");
+        this.playerIdleUp = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_up");
+        this.playerIdleLeft = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_left");
+        this.playerIdleRight = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_right");
+
+        this.playerRunDownAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(PLAYER_ATLAS_PATH, "player_run_down")
+        );
+        this.playerRunUpAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(PLAYER_ATLAS_PATH, "player_run_up")
+        );
+        this.playerRunLeftAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(PLAYER_ATLAS_PATH, "player_run_left")
+        );
+        this.playerRunRightAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(PLAYER_ATLAS_PATH, "player_run_right")
+        );
+    }
+
+    private TextureRegion getPlayerCurrentFrame(Player player) {
+        if (!player.isMoving()) {
+            return switch (player.getLastDirection()) {
+                case UP -> playerIdleUp;
+                case LEFT -> playerIdleLeft;
+                case RIGHT -> playerIdleRight;
+                case DOWN -> playerIdleDown;
+            };
+        }
+
+        return switch (player.getLastDirection()) {
+            case UP -> playerRunUpAnimation.getKeyFrame(player.getStateTime(), true);
+            case LEFT -> playerRunLeftAnimation.getKeyFrame(player.getStateTime(), true);
+            case RIGHT -> playerRunRightAnimation.getKeyFrame(player.getStateTime(), true);
+            case DOWN -> playerRunDownAnimation.getKeyFrame(player.getStateTime(), true);
+        };
     }
 
     public void render() {
@@ -55,7 +112,7 @@ public class RenderManager {
         batch.setProjectionMatrix(cameraManager.getCamera().combined);
         batch.begin();
 
-        batch.draw(playerTexture, player.getX(), player.getY(), player.getWidth(), player.getHeight());
+        batch.draw(getPlayerCurrentFrame(player), player.getX(), player.getY(), player.getWidth(), player.getHeight());
 
         Relic relic = logicManager.getRelic();
         if (!relic.isCollected()) {
