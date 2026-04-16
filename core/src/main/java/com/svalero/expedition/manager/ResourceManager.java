@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
 
 public class ResourceManager {
 
@@ -14,18 +16,24 @@ public class ResourceManager {
     private static Texture whitePixelTexture;
 
     public static void loadAllResources() {
-        // Evita recargar los mismos recursos si ya están en memoria
         if (resourcesLoaded) {
             return;
         }
 
-        //Texturas
-        manager.load("player/player_idle.png", Texture.class);
+        // Atlas de personajes
+        manager.load("player/player.atlas", TextureAtlas.class);
+        manager.load("supply/supply.atlas", TextureAtlas.class);
+        manager.load("boar/boar.atlas", TextureAtlas.class);
+        manager.load("rabbit/rabbit.atlas", TextureAtlas.class);
+        manager.load("bird/bird.atlas", TextureAtlas.class);
+        manager.load("wasp/wasp.atlas", TextureAtlas.class);
+        manager.load("friend/friend.atlas", TextureAtlas.class);
+
+        manager.load("present/present.atlas", TextureAtlas.class);
+
+        // Texturas sueltas necesarias
         manager.load("items/egg_item.png", Texture.class);
-        manager.load("dog/dog_idle.png", Texture.class);
-        manager.load("bear/bear_idle.png", Texture.class);
         manager.load("relic/bone.png", Texture.class);
-        manager.load("bird/bird_idle.png", Texture.class);
         manager.load("items/apple_item.png", Texture.class);
         manager.load("items/poison_item.png", Texture.class);
 
@@ -44,7 +52,6 @@ public class ResourceManager {
         manager.load("sounds/score_collect.wav", Sound.class);
         manager.load("sounds/poison_collect.mp3", Sound.class);
 
-        // Textura blanca de 1x1 para dibujar paneles simples por encima del juego
         if (whitePixelTexture == null) {
             Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
             pixmap.setColor(1, 1, 1, 1);
@@ -57,34 +64,46 @@ public class ResourceManager {
         resourcesLoaded = true;
     }
 
-        public static Texture getTexture(String path) {
-            return manager.get(path, Texture.class);
-        }
-
-        public static Texture getWhitePixelTexture() {
-            return whitePixelTexture;
-        }
-
-        public static Music getMusic(String path) {
-            return manager.get(path, Music.class);
-        }
-
-        public static Sound getSound(String path) {
-            return manager.get(path, Sound.class);
-        }
-
-        public static AssetManager getManager() {
-            return manager;
-        }
-
-        public static void dispose() {
-            manager.dispose();
-
-            if (whitePixelTexture != null) {
-                whitePixelTexture.dispose();
-                whitePixelTexture = null;
-            }
-
-            resourcesLoaded = false;
-        }
+    public static Texture getTexture(String path) {
+        return manager.get(path, Texture.class);
     }
+
+    public static TextureAtlas getAtlas(String path) {
+        return manager.get(path, TextureAtlas.class);
+    }
+
+    public static TextureRegion getRegion(String atlasPath, String regionName) {
+        return getAtlas(atlasPath).findRegion(regionName);
+    }
+
+    public static Array<TextureAtlas.AtlasRegion> getRegions(String atlasPath, String regionName) {
+        return getAtlas(atlasPath).findRegions(regionName);
+    }
+
+    public static Texture getWhitePixelTexture() {
+        return whitePixelTexture;
+    }
+
+    public static Music getMusic(String path) {
+        return manager.get(path, Music.class);
+    }
+
+    public static Sound getSound(String path) {
+        return manager.get(path, Sound.class);
+    }
+
+    public static AssetManager getManager() {
+        return manager;
+    }
+
+    public static void dispose() {
+        manager.dispose();
+
+        if (whitePixelTexture != null) {
+            whitePixelTexture.dispose();
+            whitePixelTexture = null;
+        }
+
+        resourcesLoaded = false;
+    }
+}

@@ -1,6 +1,13 @@
 package com.svalero.expedition.domain;
 
-public class Player extends Character{
+public class Player extends Character {
+
+    public enum Direction {
+        DOWN,
+        UP,
+        LEFT,
+        RIGHT
+    }
 
     private int energy;
     private int maxEnergy;
@@ -13,6 +20,11 @@ public class Player extends Character{
     private float speedMultiplier;
     private float width;
     private float height;
+
+    // Estado simple de animación
+    private Direction lastDirection;
+    private boolean moving;
+    private float stateTime;
 
     public Player(float x, float y, float speed, int energy, int lives, int score) {
         super(x, y, speed);
@@ -27,6 +39,10 @@ public class Player extends Character{
         this.width = 32;
         this.height = 48;
         this.speedMultiplier = 1f;
+
+        this.lastDirection = Direction.DOWN;
+        this.moving = false;
+        this.stateTime = 0f;
     }
 
     @Override
@@ -34,6 +50,26 @@ public class Player extends Character{
         // Actualiza la posición del jugador en función de la dirección marcada
         x += directionX * speed * speedMultiplier * delta;
         y += directionY * speed * speedMultiplier * delta;
+    }
+
+    public void updateAnimationState(float delta) {
+        moving = directionX !=0 || directionY !=0;
+
+        if (directionY > 0) {
+            lastDirection = Direction.UP;
+        } else if (directionY < 0) {
+            lastDirection = Direction.DOWN;
+        } else if (directionX > 0) {
+            lastDirection = Direction.RIGHT;
+        } else if (directionX < 0) {
+            lastDirection = Direction.LEFT;
+        }
+
+        if (moving) {
+            stateTime += delta;
+        } else {
+            stateTime = 0f;
+        }
     }
 
     public int getEnergy() {
@@ -130,5 +166,17 @@ public class Player extends Character{
 
     public void setSpeedMultiplier(float speedMultiplier) {
         this.speedMultiplier = speedMultiplier;
+    }
+
+    public Direction getLastDirection() {
+        return lastDirection;
+    }
+
+    public boolean isMoving() {
+        return moving;
+    }
+
+    public float getStateTime() {
+        return stateTime;
     }
 }

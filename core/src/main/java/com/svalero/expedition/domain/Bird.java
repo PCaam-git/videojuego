@@ -21,6 +21,7 @@ public class Bird extends NPC {
 
     private boolean alwaysVisible;
     private BirdState state;
+    private float stateTime;
 
     public Bird(float x, float y, float speed, float triggerX) {
         super(x, y, speed);
@@ -35,6 +36,7 @@ public class Bird extends NPC {
         this.homeY = y;
         this.alwaysVisible = false;
         this.state = BirdState.IDLE;
+        this.stateTime = 0f;
     }
 
     @Override
@@ -42,6 +44,8 @@ public class Bird extends NPC {
         if (state == BirdState.IDLE) {
             return;
         }
+
+        stateTime += delta;
 
         float distanceX = targetX - x;
         float distanceY = targetY - y;
@@ -54,13 +58,12 @@ public class Bird extends NPC {
             velocityY = 0;
 
             if (state == BirdState.ATTACKING) {
-                // Tras atacar, vuelve a su posición inicial
                 state = BirdState.RETURNING;
                 targetX = homeX;
                 targetY = homeY;
             } else {
-                // Al terminar el retorno, queda en reposo
                 state = BirdState.IDLE;
+                stateTime = 0f;
             }
             return;
         }
@@ -80,6 +83,7 @@ public class Bird extends NPC {
         this.targetX = targetX;
         this.targetY = targetY;
         this.state = BirdState.ATTACKING;
+        this.stateTime = 0f;
     }
 
     public void resetPosition(float x, float y) {
@@ -93,6 +97,7 @@ public class Bird extends NPC {
         this.targetY = y;
         this.alwaysVisible = false;
         this.state = BirdState.IDLE;
+        this.stateTime = 0f;
     }
 
     public void setIdlePosition(float x, float y) {
@@ -105,6 +110,7 @@ public class Bird extends NPC {
         this.targetX = x;
         this.targetY = y;
         this.state = BirdState.IDLE;
+        this.stateTime = 0f;
     }
 
     public void setAlwaysVisible(boolean alwaysVisible) {
@@ -141,5 +147,9 @@ public class Bird extends NPC {
 
     public float getHeight() {
         return height;
+    }
+
+    public float getStateTime() {
+        return stateTime;
     }
 }
