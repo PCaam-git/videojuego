@@ -6,7 +6,9 @@ import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.MapLayer;
 
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.math.Rectangle;
 import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.domain.Relic;
 import com.svalero.expedition.domain.Supply;
@@ -28,6 +30,8 @@ public class LogicManager {
     private static final float SUPPLY_FOLLOW_EXTRA_DISTANCE = 32f;
     private static final float SUPPLY_CALL_SPEED = 90f;
     private static final float SUPPLY_FOLLOW_SPEED = 70f;
+    private static final float LEVEL_2_SUPPLY_CALL_SPEED = 120f;
+    private static final float LEVEL_2_SUPPLY_FOLLOW_SPEED = 90f;
 
     private static final float POISON_DURATION = 5f;
     private static final float POISON_SPEED_FACTOR = 0.2f;
@@ -84,6 +88,14 @@ public class LogicManager {
     private float tileWidth;
     private float tileHeight;
 
+    private float friendZoneX;
+    private float friendZoneY;
+    private float friendZoneWidth;
+    private float friendZoneHeight;
+    private boolean friendZoneConfigured;
+    private boolean friendMessageTriggered;
+    private float friendMessageTimer;
+
     private final int currentLevel;
 
     private float speedBoostTimer;
@@ -126,15 +138,26 @@ public class LogicManager {
         // Valores por defecto si el mapa no los sobrescribe
         playerStartX = PLAYER_START_X;
         playerStartY = PLAYER_START_Y;
+
         supplyStartX = SUPPLY_START_X;
         supplyStartY = SUPPLY_START_Y;
+
         birdStartX = -60;
         birdStartY = Gdx.graphics.getHeight() - 36;
+
         birdZoneX = 0;
         birdZoneY = 0;
         birdZoneWidth = 0;
         birdZoneHeight = 0;
         birdZoneConfigured = false;
+
+        friendZoneX = 0;
+        friendZoneY = 0;
+        friendZoneWidth = 0;
+        friendZoneHeight = 0;
+        friendZoneConfigured = false;
+        friendMessageTriggered = false;
+        friendMessageTimer = 0;
 
         if (currentLevel == 2) {
             bird.setIdlePosition(birdStartX, birdStartY);
@@ -265,17 +288,28 @@ public class LogicManager {
                     break;
 
                 case "birdZone":
-                    Object propWidth = object.getProperties().get("width");
-                    Object propHeight = object.getProperties().get("height");
+                    if (object instanceof RectangleMapObject rectangleMapObject) {
+                        Rectangle rectangle = rectangleMapObject.getRectangle();
 
-                    if (propWidth != null && propHeight != null) {
-                        birdZoneX = x;
-                        birdZoneWidth = ((Number) propWidth).floatValue() * scale;
-                        birdZoneHeight = ((Number) propHeight).floatValue() * scale;
-
-                        birdZoneY = y - birdZoneHeight;
+                        birdZoneX = rectangle.x * scale;
+                        birdZoneY = rectangle.y * scale;
+                        birdZoneWidth = rectangle.width * scale;
+                        birdZoneHeight = rectangle.height * scale;
 
                         birdZoneConfigured = true;
+                    }
+                    break;
+
+                case "friendZone":
+                    if (object instanceof RectangleMapObject rectangleMapObject) {
+                        Rectangle rectangle = rectangleMapObject.getRectangle();
+
+                        friendZoneX = rectangle.x * scale;
+                        friendZoneY = rectangle.y * scale;
+                        friendZoneWidth = rectangle.width * scale;
+                        friendZoneHeight = rectangle.height * scale;
+
+                        friendZoneConfigured = true;
                     }
                     break;
 
@@ -343,6 +377,27 @@ public class LogicManager {
         }
     }
 
+    private void updateFriendZoneTrigger() {
+        if (currentLevel != 2) {
+            return;
+        }
+
+        if (!friendZoneConfigured || friendMessageTriggered) {
+            return;
+        }
+
+        boolean overlapX = getPlayerHitboxRight() >= friendZoneX
+            && getPlayerHitboxLeft() <= friendZoneX + friendZoneWidth;
+
+        boolean overlapY = getPlayerHitboxTop() >= friendZoneY
+            && getPlayerHitboxBottom() <= friendZoneY + friendZoneHeight;
+
+        if (overlapX && overlapY) {
+            friendMessageTriggered = true;
+            friendMessageTimer = 3f;
+        }
+    }
+
 
     // --- CORE LOOP --- Lógica que se ejecuta continuamente
 
@@ -363,6 +418,7 @@ public class LogicManager {
         updateBirdAttackCooldownTimer(delta);
         updateSpeedBoostTimer(delta);
         updateGuardianDeathMessageTimer(delta);
+        updateFriendMessageTimer(delta);
 
         if (guardianDamageTimer <= 0 && birdDamageTimer <= 0) {
             float speedFactor = 1f;
@@ -381,6 +437,7 @@ public class LogicManager {
         supply.update(delta);
         moveSupply(delta);
         updateBirdZoneTrigger();
+        updateFriendZoneTrigger();
 
         if (bird != null && bird.isActive()) {
             // bird.setTarget(getPlayerHitboxCenterX(), getPlayerHitboxCenterY());
@@ -495,7 +552,11 @@ public class LogicManager {
 
         float directionX = distanceX / distance;
         float directionY = distanceY / distance;
-        float speed = supply.isCalled() ? SUPPLY_CALL_SPEED : SUPPLY_FOLLOW_SPEED;
+
+        float callSpeed = (currentLevel == 2) ? LEVEL_2_SUPPLY_CALL_SPEED : SUPPLY_CALL_SPEED;
+        float followSpeed = (currentLevel == 2) ? LEVEL_2_SUPPLY_FOLLOW_SPEED : SUPPLY_FOLLOW_SPEED;
+
+        float speed = supply.isCalled() ? callSpeed : followSpeed;
 
         supply.setX(supply.getX() + directionX * speed * delta);
         supply.setY(supply.getY() + directionY * speed * delta);
@@ -965,6 +1026,9 @@ public class LogicManager {
         birdTriggered = false;
         birdAttackCooldownTimer = 0;
 
+        friendMessageTriggered = false;
+        friendMessageTimer = 0;
+
         guardianDamageTimer = 0;
         birdDamageTimer = 0;
         supplyCooldownTimer = 0;
@@ -1080,6 +1144,11 @@ public class LogicManager {
             birdAttackCooldownTimer -= delta;
         }
     }
+    private void updateFriendMessageTimer(float delta) {
+        if (friendMessageTimer > 0) {
+            friendMessageTimer -= delta;
+        }
+    }
 
     // --- GETTERS ---
 
@@ -1157,5 +1226,9 @@ public class LogicManager {
 
     public int getCurrentLevel() {
         return currentLevel;
+    }
+
+    public float getFriendMessageTimer() {
+        return friendMessageTimer;
     }
 }

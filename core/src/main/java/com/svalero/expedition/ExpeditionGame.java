@@ -10,7 +10,7 @@ public class ExpeditionGame extends Game {
     @Override
     public void create() {
         // El juego siempre arranca en el nivel 1
-        currentLevel = 1;
+        currentLevel = 2;
         setScreen(new MainMenuScreen(this));
     }
 
@@ -27,6 +27,6 @@ public class ExpeditionGame extends Game {
     }
 
     public void resetToFirstLevel() {
-        currentLevel = 1;
+        currentLevel = 2;
     }
 }
