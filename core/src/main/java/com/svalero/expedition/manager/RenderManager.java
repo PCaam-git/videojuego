@@ -387,7 +387,7 @@ public class RenderManager {
         font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 430);
         font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 410);
         font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 390);
-        font.draw(batch, "Nivel: " + logicManager.getCurrentLevel(), 50, 370. );
+        font.draw(batch, "Nivel: " + logicManager.getCurrentLevel(), 50, 370 );
 
         if (logicManager.getGuardianDeathMessageTimer() > 0) {
             if (logicManager.getCurrentLevel() == 1) {
