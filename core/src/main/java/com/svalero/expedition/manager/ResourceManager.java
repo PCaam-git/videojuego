@@ -16,18 +16,24 @@ public class ResourceManager {
     private static Texture whitePixelTexture;
 
     public static void loadAllResources() {
-        // Evita recargar los mismos recursos si ya están en memoria
         if (resourcesLoaded) {
             return;
         }
 
-        // Texturas y atlas
+        // Atlas de personajes
         manager.load("player/player.atlas", TextureAtlas.class);
+        manager.load("supply/supply.atlas", TextureAtlas.class);
+        manager.load("boar/boar.atlas", TextureAtlas.class);
+        manager.load("rabbit/rabbit.atlas", TextureAtlas.class);
+        manager.load("bird/bird.atlas", TextureAtlas.class);
+        manager.load("wasp/wasp.atlas", TextureAtlas.class);
+        manager.load("friend/friend.atlas", TextureAtlas.class);
+
+        manager.load("present/present.atlas", TextureAtlas.class);
+
+        // Texturas sueltas necesarias
         manager.load("items/egg_item.png", Texture.class);
-        manager.load("dog/dog_idle.png", Texture.class);
-        manager.load("bear/bear_idle.png", Texture.class);
         manager.load("relic/bone.png", Texture.class);
-        manager.load("bird/bird_idle.png", Texture.class);
         manager.load("items/apple_item.png", Texture.class);
         manager.load("items/poison_item.png", Texture.class);
 
@@ -46,7 +52,6 @@ public class ResourceManager {
         manager.load("sounds/score_collect.wav", Sound.class);
         manager.load("sounds/poison_collect.mp3", Sound.class);
 
-        // Textura blanca de 1x1 para dibujar paneles simples por encima del juego
         if (whitePixelTexture == null) {
             Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
             pixmap.setColor(1, 1, 1, 1);

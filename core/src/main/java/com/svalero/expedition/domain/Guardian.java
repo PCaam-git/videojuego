@@ -1,6 +1,13 @@
 package com.svalero.expedition.domain;
 
-public class Guardian extends NPC{
+public class Guardian extends NPC {
+
+    public enum Direction {
+        DOWN,
+        UP,
+        LEFT,
+        RIGHT
+    }
 
     private enum JumpState {
         WAITING,
@@ -12,6 +19,11 @@ public class Guardian extends NPC{
 
     private float width;
     private float height;
+
+    // Estado simple de animación
+    private Direction lastDirection;
+    private boolean moving;
+    private float stateTime;
 
     // NIVEL 1: patrulla vertical
     private float minY;
@@ -38,7 +50,7 @@ public class Guardian extends NPC{
 
     // Constructor nivel 1: patrulla vertical
     public Guardian(float x, float y, float speed, float minY, float maxY) {
-        super (x, y, speed);
+        super(x, y, speed);
         this.width = 40;
         this.height = 56;
         this.minY = minY;
@@ -46,9 +58,13 @@ public class Guardian extends NPC{
         this.movingUp = true;
         this.usesVerticalPatrol = true;
         this.usesJumpPatrol = false;
+
+        this.lastDirection = Direction.DOWN;
+        this.moving = false;
+        this.stateTime = 0f;
     }
 
-    // constructor nivel 2: salto entre 3 puntos
+    // Constructor nivel 2: salto entre 3 puntos
     public Guardian(float x, float y, float speed, float pointBX, float pointBY, float pointCX, float pointCY, float waitTime) {
         super(x, y, speed);
         this.width = 40;
@@ -61,8 +77,8 @@ public class Guardian extends NPC{
         this.pointCX = pointCX;
         this.pointCY = pointCY;
 
-        this.currentPointIndex = 0; // empieza en A
-        this.direction = 1; // A -> B -> C
+        this.currentPointIndex = 0;
+        this.direction = 1;
         this.waitTime = waitTime;
         this.waitTimer = waitTime;
         this.landingTimer = 0f;
@@ -70,15 +86,24 @@ public class Guardian extends NPC{
 
         this.usesVerticalPatrol = false;
         this.usesJumpPatrol = true;
+
+        this.lastDirection = Direction.DOWN;
+        this.moving = false;
+        this.stateTime = 0f;
     }
 
     @Override
     public void update(float delta) {
+        float previousX = x;
+        float previousY = y;
+
         if (usesJumpPatrol) {
             updateJumpPatrol(delta);
         } else {
             updateVerticalPatrol(delta);
         }
+
+        updateAnimationState(delta, previousX, previousY);
     }
 
     private void updateVerticalPatrol(float delta) {
@@ -151,6 +176,36 @@ public class Guardian extends NPC{
         }
     }
 
+    private void updateAnimationState(float delta, float previousX, float previousY) {
+        float deltaX = x - previousX;
+        float deltaY = y - previousY;
+
+        moving = Math.abs(deltaX) > 0.01f || Math.abs(deltaY) > 0.01f;
+
+        if (moving) {
+            float horizontalWeight = Math.abs(deltaX);
+            float verticalWeight = Math.abs(deltaY);
+
+            if (horizontalWeight > verticalWeight) {
+                if (deltaX < 0) {
+                    lastDirection = Direction.LEFT;
+                } else {
+                    lastDirection = Direction.RIGHT;
+                }
+            } else {
+                if (deltaY > 0) {
+                    lastDirection = Direction.UP;
+                } else {
+                    lastDirection = Direction.DOWN;
+                }
+            }
+
+            stateTime += delta;
+        } else {
+            stateTime = 0f;
+        }
+    }
+
     private void setTargetPoint(int pointIndex) {
         if (pointIndex == 1) {
             targetX = pointBX;
@@ -188,5 +243,17 @@ public class Guardian extends NPC{
 
     public float getMaxY() {
         return maxY;
+    }
+
+    public Direction getLastDirection() {
+        return lastDirection;
+    }
+
+    public boolean isMoving() {
+        return moving;
+    }
+
+    public float getStateTime() {
+        return stateTime;
     }
 }

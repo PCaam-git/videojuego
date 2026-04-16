@@ -7,7 +7,6 @@ public class AtlasGenerator {
     public static void main(String[] args) {
         TexturePacker.Settings settings = new TexturePacker.Settings();
 
-        // Ajustes simples y seguros para esta primera versión
         settings.maxWidth = 1024;
         settings.maxHeight = 1024;
         settings.paddingX = 2;
@@ -20,11 +19,52 @@ public class AtlasGenerator {
 
         TexturePacker.process(
             settings,
-            "assets/atlas_source/player",
-            "assets/player",
-            "player"
+            "assets/atlas_source/supply",
+            "assets/supply",
+            "supply"
         );
 
-        System.out.println("Atlas generado correctamente en assets/player");
+        TexturePacker.process(
+            settings,
+            "assets/atlas_source/bird",
+            "assets/bird",
+            "bird"
+        );
+
+        TexturePacker.process(
+            settings,
+            "assets/atlas_source/rabbit",
+            "assets/rabbit",
+            "rabbit"
+        );
+
+        TexturePacker.process(
+            settings,
+            "assets/atlas_source/wasp",
+            "assets/wasp",
+            "wasp"
+        );
+
+        TexturePacker.process(
+            settings,
+            "assets/atlas_source/boar",
+            "assets/boar",
+            "boar"
+        );
+
+        TexturePacker.process(
+            settings,
+            "assets/atlas_source/friend",
+            "assets/friend",
+            "friend"
+        );
+
+        TexturePacker.process(
+            settings,
+            "assets/atlas_source/present",
+            "assets/present",
+            "present"
+        );
+
     }
 }

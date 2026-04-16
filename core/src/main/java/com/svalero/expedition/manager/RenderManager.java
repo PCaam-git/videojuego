@@ -20,7 +20,15 @@ import com.svalero.expedition.domain.PoisonItem;
 public class RenderManager {
 
     private static final float PLAYER_ANIMATION_FRAME_DURATION = 0.12f;
+
     private static final String PLAYER_ATLAS_PATH = "player/player.atlas";
+    private static final String SUPPLY_ATLAS_PATH = "supply/supply.atlas";
+    private static final String BOAR_ATLAS_PATH = "boar/boar.atlas";
+    private static final String RABBIT_ATLAS_PATH = "rabbit/rabbit.atlas";
+    private static final String BIRD_ATLAS_PATH = "bird/bird.atlas";
+    private static final String WASP_ATLAS_PATH = "wasp/wasp.atlas";
+    private static final String FRIEND_ATLAS_PATH = "friend/friend.atlas";
+    private static final String PRESENT_ATLAS_PATH = "present/present.atlas";
 
     private final SpriteBatch batch;
     private final LogicManager logicManager;
@@ -29,24 +37,66 @@ public class RenderManager {
     private final Matrix4 hudMatrix;
 
     private final Texture scoreItemTexture;
-    private final Texture supplyTexture;
-    private final Texture guardianTexture;
     private final Texture relicTexture;
-    private final Texture birdTexture;
     private final Texture immunityItemTexture;
     private final Texture poisonItemTexture;
 
-    // Idle del player
+    // Player
     private final TextureRegion playerIdleDown;
     private final TextureRegion playerIdleUp;
     private final TextureRegion playerIdleLeft;
     private final TextureRegion playerIdleRight;
-
-    // Run del player
     private final Animation<TextureRegion> playerRunDownAnimation;
     private final Animation<TextureRegion> playerRunUpAnimation;
     private final Animation<TextureRegion> playerRunLeftAnimation;
     private final Animation<TextureRegion> playerRunRightAnimation;
+
+    // Supply
+    private final TextureRegion supplyIdleDown;
+    private final TextureRegion supplyIdleUp;
+    private final TextureRegion supplyIdleLeft;
+    private final TextureRegion supplyIdleRight;
+    private final Animation<TextureRegion> supplyWalkDownAnimation;
+    private final Animation<TextureRegion> supplyWalkUpAnimation;
+    private final Animation<TextureRegion> supplyWalkLeftAnimation;
+    private final Animation<TextureRegion> supplyWalkRightAnimation;
+
+    // Boar
+    private final TextureRegion boarIdleDown;
+    private final TextureRegion boarIdleUp;
+    private final TextureRegion boarIdleLeft;
+    private final TextureRegion boarIdleRight;
+    private final Animation<TextureRegion> boarRunDownAnimation;
+    private final Animation<TextureRegion> boarRunUpAnimation;
+    private final Animation<TextureRegion> boarRunLeftAnimation;
+    private final Animation<TextureRegion> boarRunRightAnimation;
+
+    // Rabbit
+    private final TextureRegion rabbitIdleDown;
+    private final TextureRegion rabbitIdleUp;
+    private final TextureRegion rabbitIdleLeft;
+    private final TextureRegion rabbitIdleRight;
+    private final Animation<TextureRegion> rabbitJumpDownAnimation;
+    private final Animation<TextureRegion> rabbitJumpUpAnimation;
+    private final Animation<TextureRegion> rabbitJumpLeftAnimation;
+    private final Animation<TextureRegion> rabbitJumpRightAnimation;
+
+    // Bird
+    private final Animation<TextureRegion> birdFlyAnimation;
+
+    // Wasp
+    private final TextureRegion waspIdle;
+    private final Animation<TextureRegion> waspFlyAnimation;
+
+    // Friend
+    private final TextureRegion friendIdleDown;
+    private final TextureRegion friendIdleUp;
+    private final TextureRegion friendIdleLeft;
+    private final TextureRegion friendIdleRight;
+
+    // Present
+    private final TextureRegion presentIdle;
+    private final Animation<TextureRegion> presentOpenAnimation;
 
     public RenderManager(SpriteBatch batch, LogicManager logicManager, CameraManager cameraManager) {
         this.batch = batch;
@@ -56,17 +106,21 @@ public class RenderManager {
         this.hudMatrix = new Matrix4();
 
         this.scoreItemTexture = ResourceManager.getTexture("items/egg_item.png");
-        this.supplyTexture = ResourceManager.getTexture("dog/dog_idle.png");
-        this.guardianTexture = ResourceManager.getTexture("bear/bear_idle.png");
         this.relicTexture = ResourceManager.getTexture("relic/bone.png");
-        this.birdTexture = ResourceManager.getTexture("bird/bird_idle.png");
         this.immunityItemTexture = ResourceManager.getTexture("items/apple_item.png");
         this.poisonItemTexture = ResourceManager.getTexture("items/apple_item.png");
 
+        // Player
         this.playerIdleDown = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_down");
         this.playerIdleUp = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_up");
         this.playerIdleLeft = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_left");
         this.playerIdleRight = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_right");
+
+        // Friend
+        this.friendIdleDown = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_down");
+        this.friendIdleUp = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_up");
+        this.friendIdleLeft = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_left");
+        this.friendIdleRight = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_right");
 
         this.playerRunDownAnimation = new Animation<>(
             PLAYER_ANIMATION_FRAME_DURATION,
@@ -83,6 +137,95 @@ public class RenderManager {
         this.playerRunRightAnimation = new Animation<>(
             PLAYER_ANIMATION_FRAME_DURATION,
             ResourceManager.getRegions(PLAYER_ATLAS_PATH, "player_run_right")
+        );
+
+        // Supply
+        this.supplyIdleDown = ResourceManager.getRegion(SUPPLY_ATLAS_PATH, "dog_idle_down");
+        this.supplyIdleUp = ResourceManager.getRegion(SUPPLY_ATLAS_PATH, "dog_idle_up");
+        this.supplyIdleLeft = ResourceManager.getRegion(SUPPLY_ATLAS_PATH, "dog_idle_left");
+        this.supplyIdleRight = ResourceManager.getRegion(SUPPLY_ATLAS_PATH, "dog_idle_right");
+
+        this.supplyWalkDownAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(SUPPLY_ATLAS_PATH, "dog_walk_down")
+        );
+        this.supplyWalkUpAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(SUPPLY_ATLAS_PATH, "dog_walk_up")
+        );
+        this.supplyWalkLeftAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(SUPPLY_ATLAS_PATH, "dog_walk_left")
+        );
+        this.supplyWalkRightAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(SUPPLY_ATLAS_PATH, "dog_walk_right")
+        );
+
+        // Boar
+        this.boarIdleDown = ResourceManager.getRegion(BOAR_ATLAS_PATH, "boar_idle_down");
+        this.boarIdleUp = ResourceManager.getRegion(BOAR_ATLAS_PATH, "boar_idle_up");
+        this.boarIdleLeft = ResourceManager.getRegion(BOAR_ATLAS_PATH, "boar_idle_left");
+        this.boarIdleRight = ResourceManager.getRegion(BOAR_ATLAS_PATH, "boar_idle_right");
+
+        this.boarRunDownAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(BOAR_ATLAS_PATH, "boar_run_down")
+        );
+        this.boarRunUpAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(BOAR_ATLAS_PATH, "boar_run_up")
+        );
+        this.boarRunLeftAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(BOAR_ATLAS_PATH, "boar_run_left")
+        );
+        this.boarRunRightAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(BOAR_ATLAS_PATH, "boar_run_right")
+        );
+
+        // Rabbit
+        this.rabbitIdleDown = ResourceManager.getRegion(RABBIT_ATLAS_PATH, "rabbit_idle_down");
+        this.rabbitIdleUp = ResourceManager.getRegion(RABBIT_ATLAS_PATH, "rabbit_idle_up");
+        this.rabbitIdleLeft = ResourceManager.getRegion(RABBIT_ATLAS_PATH, "rabbit_idle_left");
+        this.rabbitIdleRight = ResourceManager.getRegion(RABBIT_ATLAS_PATH, "rabbit_idle_right");
+
+        this.rabbitJumpDownAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(RABBIT_ATLAS_PATH, "rabbit_jump_down")
+        );
+        this.rabbitJumpUpAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(RABBIT_ATLAS_PATH, "rabbit_jump_up")
+        );
+        this.rabbitJumpLeftAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(RABBIT_ATLAS_PATH, "rabbit_jump_left")
+        );
+        this.rabbitJumpRightAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(RABBIT_ATLAS_PATH, "rabbit_jump_right")
+        );
+
+        // Bird
+        this.birdFlyAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(BIRD_ATLAS_PATH, "bird_fly")
+        );
+
+        // Wasp
+        this.waspIdle = ResourceManager.getRegion(WASP_ATLAS_PATH, "wasp_idle");
+        this.waspFlyAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(WASP_ATLAS_PATH, "wasp_fly")
+        );
+
+        // Present
+        this.presentIdle = ResourceManager.getRegion(PRESENT_ATLAS_PATH, "present_idle");
+        this.presentOpenAnimation = new Animation<>(
+            PLAYER_ANIMATION_FRAME_DURATION,
+            ResourceManager.getRegions(PRESENT_ATLAS_PATH, "present")
         );
     }
 
@@ -104,6 +247,84 @@ public class RenderManager {
         };
     }
 
+    private TextureRegion getSupplyCurrentFrame(Supply supply) {
+        if (!supply.isMoving()) {
+            return switch (supply.getLastDirection()) {
+                case UP -> supplyIdleUp;
+                case LEFT -> supplyIdleLeft;
+                case RIGHT -> supplyIdleRight;
+                case DOWN -> supplyIdleDown;
+            };
+        }
+
+        return switch (supply.getLastDirection()) {
+            case UP -> supplyWalkUpAnimation.getKeyFrame(supply.getStateTime(), true);
+            case LEFT -> supplyWalkLeftAnimation.getKeyFrame(supply.getStateTime(), true);
+            case RIGHT -> supplyWalkRightAnimation.getKeyFrame(supply.getStateTime(), true);
+            case DOWN -> supplyWalkDownAnimation.getKeyFrame(supply.getStateTime(), true);
+        };
+    }
+
+    private TextureRegion getGuardianCurrentFrame(Guardian guardian) {
+        if (logicManager.getCurrentLevel() == 1) {
+            if (!guardian.isMoving()) {
+                return switch (guardian.getLastDirection()) {
+                    case UP -> boarIdleUp;
+                    case LEFT -> boarIdleLeft;
+                    case RIGHT -> boarIdleRight;
+                    case DOWN -> boarIdleDown;
+                };
+            }
+
+            return switch (guardian.getLastDirection()) {
+                case UP -> boarRunUpAnimation.getKeyFrame(guardian.getStateTime(), true);
+                case LEFT -> boarRunLeftAnimation.getKeyFrame(guardian.getStateTime(), true);
+                case RIGHT -> boarRunRightAnimation.getKeyFrame(guardian.getStateTime(), true);
+                case DOWN -> boarRunDownAnimation.getKeyFrame(guardian.getStateTime(), true);
+            };
+        }
+
+        if (!guardian.isMoving()) {
+            return switch (guardian.getLastDirection()) {
+                case UP -> rabbitIdleUp;
+                case LEFT -> rabbitIdleLeft;
+                case RIGHT -> rabbitIdleRight;
+                case DOWN -> rabbitIdleDown;
+            };
+        }
+
+        return switch (guardian.getLastDirection()) {
+            case UP -> rabbitJumpUpAnimation.getKeyFrame(guardian.getStateTime(), true);
+            case LEFT -> rabbitJumpLeftAnimation.getKeyFrame(guardian.getStateTime(), true);
+            case RIGHT -> rabbitJumpRightAnimation.getKeyFrame(guardian.getStateTime(), true);
+            case DOWN -> rabbitJumpDownAnimation.getKeyFrame(guardian.getStateTime(), true);
+        };
+    }
+
+    private TextureRegion getBirdCurrentFrame(Bird bird) {
+        if (logicManager.getCurrentLevel() == 1) {
+            return birdFlyAnimation.getKeyFrame(bird.getStateTime(), true);
+        }
+
+        if (!bird.isActive()) {
+            return waspIdle;
+        }
+
+        return waspFlyAnimation.getKeyFrame(bird.getStateTime(), true);
+    }
+
+    private TextureRegion getPresentCurrentFrame() {
+        if (logicManager.isPresentOpened()) {
+            return presentOpenAnimation.getKeyFrame(presentOpenAnimation.getAnimationDuration(), false);
+        }
+
+        if (logicManager.isPresentOpening()) {
+            return presentOpenAnimation.getKeyFrame(logicManager.getPresentAnimationTime(), false);
+        }
+
+        return presentIdle;
+    }
+
     public void render() {
         Player player = logicManager.getPlayer();
 
@@ -116,7 +337,12 @@ public class RenderManager {
 
         Relic relic = logicManager.getRelic();
         if (!relic.isCollected()) {
-            batch.draw(relicTexture, relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+            if (logicManager.getCurrentLevel() == 1) {
+                // Tamaño de la reliquia del nivel 1 duplicado
+                batch.draw(relicTexture, relic.getX(), relic.getY(), relic.getWidth() * 2, relic.getHeight() * 2);
+            } else {
+                batch.draw(getPresentCurrentFrame(), relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+            }
         }
 
         ScoreItem scoreItem = logicManager.getScoreItem();
@@ -135,14 +361,19 @@ public class RenderManager {
         }
 
         Supply supply = logicManager.getSupply();
-        batch.draw(supplyTexture, supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
+        batch.draw(getSupplyCurrentFrame(supply), supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
+
+        batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 30, 30);
+//        if (logicManager.getCurrentLevel() == 2 && logicManager.isFriendConfigured()) {
+//            batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 32, 32);
+//        }
 
         Guardian guardian = logicManager.getGuardian();
-        batch.draw(guardianTexture, guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
+        batch.draw(getGuardianCurrentFrame(guardian), guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
 
         Bird bird = logicManager.getBird();
         if (bird.isVisible()) {
-            batch.draw(birdTexture, bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight());
+            batch.draw(getBirdCurrentFrame(bird), bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight());
         }
 
         batch.end();

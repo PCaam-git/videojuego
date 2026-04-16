@@ -30,8 +30,8 @@ public class LogicManager {
     private static final float SUPPLY_FOLLOW_EXTRA_DISTANCE = 32f;
     private static final float SUPPLY_CALL_SPEED = 90f;
     private static final float SUPPLY_FOLLOW_SPEED = 70f;
-    private static final float LEVEL_2_SUPPLY_CALL_SPEED = 120f;
-    private static final float LEVEL_2_SUPPLY_FOLLOW_SPEED = 90f;
+    private static final float LEVEL_2_SUPPLY_CALL_SPEED = 140f;
+    private static final float LEVEL_2_SUPPLY_FOLLOW_SPEED = 120f;
 
     private static final float POISON_DURATION = 5f;
     private static final float POISON_SPEED_FACTOR = 0.2f;
@@ -95,6 +95,23 @@ public class LogicManager {
     private boolean friendZoneConfigured;
     private boolean friendMessageTriggered;
     private float friendMessageTimer;
+
+    // NPC amigo (nivel 2)
+    private float friendX;
+    private float friendY;
+    private boolean friendConfigured;
+
+    // Zona de activación del regalo (nivel 2)
+    private float presentZoneX;
+    private float presentZoneY;
+    private float presentZoneWidth;
+    private float presentZoneHeight;
+    private boolean presentZoneConfigured;
+
+    // Estado del regalo (nivel 2)
+    private boolean presentOpening;
+    private boolean presentOpened;
+    private float presentAnimationTime;
 
     private final int currentLevel;
 
@@ -300,6 +317,12 @@ public class LogicManager {
                     }
                     break;
 
+                case "friend":
+                    friendX = x;
+                    friendY = y;
+                    friendConfigured = true;
+                    break;
+
                 case "friendZone":
                     if (object instanceof RectangleMapObject rectangleMapObject) {
                         Rectangle rectangle = rectangleMapObject.getRectangle();
@@ -310,6 +333,19 @@ public class LogicManager {
                         friendZoneHeight = rectangle.height * scale;
 
                         friendZoneConfigured = true;
+                    }
+                    break;
+
+                case "presentZone":
+                    if (object instanceof RectangleMapObject rectangleMapObject) {
+                        Rectangle rectangle = rectangleMapObject.getRectangle();
+
+                        presentZoneX = rectangle.x * scale;
+                        presentZoneY = rectangle.y * scale;
+                        presentZoneWidth = rectangle.width * scale;
+                        presentZoneHeight = rectangle.height * scale;
+
+                        presentZoneConfigured = true;
                     }
                     break;
 
@@ -398,6 +434,23 @@ public class LogicManager {
         }
     }
 
+    private void updatePresentZoneTrigger() {
+        if (!presentZoneConfigured || presentOpened || presentOpening) {
+            return;
+        }
+
+        boolean overlapX = getPlayerHitboxRight() >= presentZoneX
+            && getPlayerHitboxLeft() <= presentZoneX + presentZoneWidth;
+
+        boolean overlapY = getPlayerHitboxTop() >= presentZoneY
+            && getPlayerHitboxBottom() <= presentZoneY + presentZoneHeight;
+
+        if (overlapX && overlapY) {
+            presentOpening = true;
+            presentAnimationTime = 0f;
+        }
+    }
+
 
     // --- CORE LOOP --- Lógica que se ejecuta continuamente
 
@@ -446,6 +499,11 @@ public class LogicManager {
             // bird.setTarget(getPlayerHitboxCenterX(), getPlayerHitboxCenterY());
             bird.update(delta);
             checkBirdCollision();
+        }
+
+        if (currentLevel == 2) {
+            updatePresentZoneTrigger();
+            updatePresentAnimationTimer(delta);
         }
 
         resetBirdIfNeeded();
@@ -550,6 +608,7 @@ public class LogicManager {
         float stopDistance = supply.isCalled() ? 5f : supply.getFollowDistance() + SUPPLY_FOLLOW_EXTRA_DISTANCE;
 
         if (distance < stopDistance) {
+            supply.updateAnimationState(delta, 0, 0);
             return;
         }
 
@@ -560,6 +619,8 @@ public class LogicManager {
         float followSpeed = (currentLevel == 2) ? LEVEL_2_SUPPLY_FOLLOW_SPEED : SUPPLY_FOLLOW_SPEED;
 
         float speed = supply.isCalled() ? callSpeed : followSpeed;
+
+        supply.updateAnimationState(delta, directionX, directionY);
 
         supply.setX(supply.getX() + directionX * speed * delta);
         supply.setY(supply.getY() + directionY * speed * delta);
@@ -1041,6 +1102,9 @@ public class LogicManager {
         immunityMessageTimer = 0;
         poisonTimer = 0;
         poisonMessageTimer = 0;
+        presentOpening = false;
+        presentOpened = false;
+        presentAnimationTime = 0f;
     }
 
     private void loseLifeAndReset() {
@@ -1153,6 +1217,21 @@ public class LogicManager {
         }
     }
 
+    private void updatePresentAnimationTimer(float delta) {
+        if (!presentOpening) {
+            return;
+        }
+
+        presentAnimationTime += delta;
+
+        if (presentAnimationTime >= 0.48f) {
+            presentAnimationTime = 0.48f;
+            presentOpening = false;
+            presentOpened = true;
+        }
+    }
+
+
     // --- GETTERS ---
 
     public Player getPlayer() {
@@ -1233,5 +1312,29 @@ public class LogicManager {
 
     public float getFriendMessageTimer() {
         return friendMessageTimer;
+    }
+
+    public float getFriendX() {
+        return friendX;
+    }
+
+    public float getFriendY() {
+        return friendY;
+    }
+
+    public boolean isFriendConfigured() {
+        return friendConfigured;
+    }
+
+    public boolean isPresentOpening() {
+        return presentOpening;
+    }
+
+    public boolean isPresentOpened() {
+        return presentOpened;
+    }
+
+    public float getPresentAnimationTime() {
+        return presentAnimationTime;
     }
 }
