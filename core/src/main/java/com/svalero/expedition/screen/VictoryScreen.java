@@ -12,6 +12,7 @@ import com.svalero.expedition.domain.Player;
 import com.svalero.expedition.manager.ConfigurationManager;
 import com.svalero.expedition.manager.ResourceManager;
 import com.svalero.expedition.manager.RankingManager;
+import com.svalero.expedition.manager.TextStyleManager;
 
 public class VictoryScreen implements Screen {
 
@@ -130,27 +131,27 @@ public class VictoryScreen implements Screen {
         batch.begin();
 
         if (game.getCurrentLevel() == 1) {
-            font.draw(batch, "¡NIVEL 1 COMPLETADO!", 100, 300);
+            font.draw(batch, "¡NIVEL 1 COMPLETADO!", 80, 300);
         } else {
-            font.draw(batch, "¡NIVEL 2 COMPLETADO!", 100, 300);
+            font.draw(batch, "¡NIVEL 2 COMPLETADO!", 80, 300);
         }
 
         // Recuento desglosado
-        font.draw(batch, "Puntuación de objetos: " + baseScore, 300, 430);
-        font.draw(batch, "Bonus por vidas restantes (" + finalPlayerState.getLives() + " x 100): +" + livesBonus, 300, 400);
-        font.draw(batch, "Bonus por energía restante (" + finalPlayerState.getEnergy() + " x 2): +" + energyBonus, 300, 370);
-        font.draw(batch, "Bonus por objeto de inmunidad (" + finalPlayerState.getImmunityCollected() + " x 500): +" + immunityBonus, 300, 340);
-        font.draw(batch, "Penalización por veneno (" + finalPlayerState.getPoisonCollected() + " x 200): -" + poisonPenalty, 300, 310);
+        font.draw(batch, "Puntuación de objetos: " + baseScore, 280, 430);
+        font.draw(batch, "Bonus por vidas restantes (" + finalPlayerState.getLives() + " x 100): +" + livesBonus, 280, 400);
+        font.draw(batch, "Bonus por energía restante (" + finalPlayerState.getEnergy() + " x 2): +" + energyBonus, 280, 370);
+        font.draw(batch, "Bonus por objeto de inmunidad (" + finalPlayerState.getImmunityCollected() + " x 500): +" + immunityBonus, 280, 340);
+        font.draw(batch, "Penalización por veneno (" + finalPlayerState.getPoisonCollected() + " x 200): -" + poisonPenalty, 280, 310);
 
         // Resultado final
-        font.draw(batch, "-----------------------------------", 300, 280);
-        font.draw(batch, "PUNTUACIÓN TOTAL: " + totalScore, 300, 250);
+        font.draw(batch, "-----------------------------------", 280, 280);
+        font.draw(batch, "PUNTUACIÓN TOTAL: " + totalScore, 280, 250);
 
         if (game.getCurrentLevel() == 1) {
-            font.draw(batch, "PUNTUACION ACUMULADA: " + (game.getAccumulatedScore() + totalScore), 300, 180);
+            font.draw(batch, "PUNTUACION ACUMULADA: " + (game.getAccumulatedScore() + totalScore), 280, 180);
             font.draw(batch, "Pulsa ENTER para jugar el nivel 2", 250, 150);
         } else {
-            font.draw(batch, "PUNTUACION NIVEL: " + (game.getAccumulatedScore() + totalScore), 300, 180);
+            font.draw(batch, "PUNTUACION NIVEL: " + (game.getAccumulatedScore() + totalScore), 280, 180);
             font.draw(batch, "Escribe tu nombre (max 12): " + playerName, 180, 150);
             font.draw(batch, "ENTER -> guardar puntuacion y volver al menu", 180, 120);
             font.draw(batch, "BACKSPACE -> borrar", 180, 90);

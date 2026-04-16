@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.svalero.expedition.ExpeditionGame;
+import com.svalero.expedition.manager.TextStyleManager;
 
 public class InstructionsScreen implements Screen{
     private final ExpeditionGame game;

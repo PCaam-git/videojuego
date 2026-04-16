@@ -6,9 +6,11 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+
 import com.svalero.expedition.ExpeditionGame;
 import com.svalero.expedition.domain.RankingEntry;
 import com.svalero.expedition.manager.RankingManager;
+import com.svalero.expedition.manager.TextStyleManager;
 
 import java.util.List;
 

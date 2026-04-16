@@ -11,6 +11,7 @@ import com.svalero.expedition.ExpeditionGame;
 import com.svalero.expedition.manager.ConfigurationManager;
 import com.svalero.expedition.manager.ResourceManager;
 import com.svalero.expedition.manager.RankingManager;
+import com.svalero.expedition.manager.TextStyleManager;
 
 public class GameOverScreen implements Screen {
 

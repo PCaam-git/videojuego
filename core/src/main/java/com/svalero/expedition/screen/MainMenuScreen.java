@@ -11,6 +11,7 @@ import com.svalero.expedition.ExpeditionGame;
 import com.svalero.expedition.screen.GameScreen;
 import com.svalero.expedition.screen.ConfigurationScreen;
 import com.svalero.expedition.screen.RankingScreen;
+import com.svalero.expedition.manager.TextStyleManager;
 
 public class MainMenuScreen implements Screen {
 

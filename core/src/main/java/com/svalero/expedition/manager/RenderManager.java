@@ -102,6 +102,8 @@ public class RenderManager {
         this.batch = batch;
         this.logicManager = logicManager;
         this.font = new BitmapFont();
+        this.font.setColor(0.2f, 0.2f, 0.2f, 1f);
+        this.font.getData().setScale(1.0f);
         this.cameraManager = cameraManager;
         this.hudMatrix = new Matrix4();
 
@@ -382,10 +384,10 @@ public class RenderManager {
         batch.begin();
 
         font.draw(batch, "Pulsa ESC para volver al menú", 50, 460);
-        font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 410);
-        font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 380);
-        font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 350);
-        font.draw(batch, "Nivel: " + logicManager.getCurrentLevel(), 50, 320);
+        font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 430);
+        font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 410);
+        font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 390);
+        font.draw(batch, "Nivel: " + logicManager.getCurrentLevel(), 50, 370. );
 
         if (logicManager.getGuardianDeathMessageTimer() > 0) {
             if (logicManager.getCurrentLevel() == 1) {
