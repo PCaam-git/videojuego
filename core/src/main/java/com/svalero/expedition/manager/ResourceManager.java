@@ -32,10 +32,12 @@ public class ResourceManager {
         manager.load("present/present.atlas", TextureAtlas.class);
 
         // Texturas sueltas necesarias
-        manager.load("items/egg_item.png", Texture.class);
+        manager.load("items/score_item_egg.png", Texture.class);
         manager.load("relic/bone.png", Texture.class);
-        manager.load("items/apple_item.png", Texture.class);
-        manager.load("items/poison_item.png", Texture.class);
+        manager.load("items/immunity_item_apple.png", Texture.class);
+        manager.load("items/poison_item_seed.png", Texture.class);
+        manager.load("items/score_item_orange.png", Texture.class);
+        manager.load("items/poison_item_mushroom.png", Texture.class);
 
         // Música de fondo
         manager.load("music/background_music.wav", Music.class);

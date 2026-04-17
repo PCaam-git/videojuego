@@ -18,6 +18,9 @@ import com.svalero.expedition.domain.ImmunityItem;
 import com.svalero.expedition.domain.ScoreItem;
 import com.svalero.expedition.domain.PoisonItem;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LogicManager {
 
     private static final float PLAYER_START_X = 20;
@@ -46,7 +49,7 @@ public class LogicManager {
     private final Supply supply;
     private Guardian guardian;
     private final Bird bird;
-    private ScoreItem scoreItem;
+    private final List<ScoreItem> scoreItems;
     private ImmunityItem immunityItem;
     private PoisonItem poisonItem;
 
@@ -122,15 +125,17 @@ public class LogicManager {
         configurationManager = new ConfigurationManager();
         this.currentLevel = currentLevel;
 
+        // posiciones por defecto
         player = new Player(PLAYER_START_X, PLAYER_START_Y, 150, 100, 3, 0);
         relic = new Relic(600, 220);
-        scoreItem = new ScoreItem(320, 220, 24, 24, 25);
+        scoreItems = new ArrayList<>();
+        scoreItems.add(new ScoreItem(320, 220, 24, 24, 25));
         supply = new Supply(SUPPLY_START_X, SUPPLY_START_Y, 0);
         guardian = new Guardian(500, 140, 100, 150, 280);
         immunityItem = new ImmunityItem(200, 300, 24, 24);
         poisonItem = new PoisonItem(400, 300, 24, 24);
 
-        float birdSpeed = (currentLevel == 2) ? LEVEL_2_BIRD_SPEED : 450f;
+        float birdSpeed = (currentLevel == 2) ? LEVEL_2_BIRD_SPEED : 350f;
         bird = new Bird(-60, Gdx.graphics.getHeight() - 36, birdSpeed, 320);
 
         guardianDamageTimer = 0;
@@ -204,6 +209,28 @@ public class LogicManager {
 
         MapObjects objects = objectsLayer.getObjects();
 
+        // si se cargan scoreItems desde el mapa, no se aplica el creado 'por defecto'
+        boolean mapHasScoreItems = false;
+
+        for (MapObject object : objects) {
+            String objectType = (String) object.getProperties().get("type");
+            if (objectType == null) {
+                objectType = (String) object.getProperties().get("class");
+            }
+            if (objectType == null) {
+                objectType = object.getName();
+            }
+
+            if ("scoreItem".equals(objectType)) {
+                mapHasScoreItems = true;
+                break;
+            }
+        }
+
+        if (mapHasScoreItems) {
+            scoreItems.clear();
+        }
+
         for (MapObject object : objects) {
 
             // Tratando de eliminar problema de incompatibilidad de nombre entre versiones
@@ -250,7 +277,7 @@ public class LogicManager {
                     break;
 
                 case "scoreItem":
-                    scoreItem = new ScoreItem(x, y, 24, 24, 25);
+                    scoreItems.add(new ScoreItem(x, y, 24, 24, 25));
                     break;
 
                 case "immunityItem":
@@ -487,7 +514,11 @@ public class LogicManager {
             player.updateAnimationState(delta);
 
             movePlayer(delta);
-            guardian.update(delta);
+
+            boolean guardianShouldMove =!(currentLevel == 1 && player.getImmunityCollected() > 0);
+            if (guardianShouldMove) {
+                guardian.update(delta);
+            }
         }
 
         supply.update(delta);
@@ -755,35 +786,37 @@ public class LogicManager {
     }
 
     private void checkScoreItemCollision() {
-        if (scoreItem.isCollected()) {
-            return;
-        }
+        for (ScoreItem scoreItem : scoreItems) {
+            if (scoreItem.isCollected()) {
+                continue;
+            }
 
-        if (guardianDamageTimer > 0) {
+            if (guardianDamageTimer > 0) {
             return;
-        }
+            }
 
-        updateBirdTriggerByItem(
-            scoreItem.getX(),
-            scoreItem.getY(),
-            scoreItem.getWidth(),
-            scoreItem.getHeight(),
+            updateBirdTriggerByItem(
+                scoreItem.getX(),
+                scoreItem.getY(),
+                scoreItem.getWidth(),
+                scoreItem.getHeight(),
             80f
-        );
+            );
 
-        boolean collisionX = getPlayerHitboxLeft() < scoreItem.getX() + scoreItem.getWidth()
-            && getPlayerHitboxRight() > scoreItem.getX();
+            boolean collisionX = getPlayerHitboxLeft() < scoreItem.getX() + scoreItem.getWidth()
+                && getPlayerHitboxRight() > scoreItem.getX();
 
-        boolean collisionY = getPlayerHitboxBottom() < scoreItem.getY() + scoreItem.getHeight()
-            && getPlayerHitboxTop() > scoreItem.getY();
+            boolean collisionY = getPlayerHitboxBottom() < scoreItem.getY() + scoreItem.getHeight()
+                && getPlayerHitboxTop() > scoreItem.getY();
 
-        if (collisionX && collisionY) {
-            scoreItem.setCollected(true);
-            player.setScore(player.getScore() + scoreItem.getScoreValue());
-            scoreMessageTimer = 1.5f;
+            if (collisionX && collisionY) {
+                scoreItem.setCollected(true);
+                player.setScore(player.getScore() + scoreItem.getScoreValue());
+                scoreMessageTimer = 1.5f;
 
-            // Sonido al recoger item de puntuación
-            playSound("sounds/score_collect.wav");
+                // Sonido al recoger item de puntuación
+                playSound("sounds/score_collect.wav");
+            }
         }
     }
 
@@ -799,19 +832,6 @@ public class LogicManager {
             immunityItem.getHeight(),
             80f
         );
-
-//        boolean nearX = getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth() + 80
-//            && getPlayerHitboxRight() > immunityItem.getX() - 80;
-//
-//        boolean nearY = getPlayerHitboxBottom() < immunityItem.getY() + immunityItem.getHeight() + 80
-//            && getPlayerHitboxTop() > immunityItem.getY() - 80;
-//
-//        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
-//            activateBird();
-//            birdTriggered = true;
-//        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
-//            birdTriggered = false;
-//        }
 
         boolean collisionX = getPlayerHitboxRight() > immunityItem.getX()
             && getPlayerHitboxLeft() < immunityItem.getX() + immunityItem.getWidth();
@@ -848,18 +868,6 @@ public class LogicManager {
             poisonItem.getHeight(),
             40f
         );
-//        boolean nearX = getPlayerHitboxLeft() < poisonItem.getX() + poisonItem.getWidth() + 40
-//            && getPlayerHitboxRight() > poisonItem.getX() - 40;
-//
-//        boolean nearY = getPlayerHitboxBottom() < poisonItem.getY() + poisonItem.getHeight() + 40
-//            && getPlayerHitboxTop() > poisonItem.getY() - 40;
-//
-//        if (nearX && nearY && !birdTriggered && bird != null && !bird.isActive()) {
-//            activateBird();
-//            birdTriggered = true;
-//        } else if ((!nearX || !nearY) && bird != null && !bird.isActive()) {
-//            birdTriggered = false;
-//        }
 
         boolean collisionX = getPlayerHitboxLeft() < poisonItem.getX() + poisonItem.getWidth()
             && getPlayerHitboxRight() > poisonItem.getX();
@@ -1065,7 +1073,7 @@ public class LogicManager {
         if (relic != null) {
             relic.setCollected(false);
         }
-        if (scoreItem != null) {
+        for (ScoreItem scoreItem : scoreItems) {
             scoreItem.reset();
         }
         if (immunityItem != null) {
@@ -1242,8 +1250,8 @@ public class LogicManager {
         return relic;
     }
 
-    public ScoreItem getScoreItem() {
-        return scoreItem;
+    public List<ScoreItem> getScoreItems() {
+        return scoreItems;
     }
 
     public Supply getSupply() {
