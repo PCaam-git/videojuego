@@ -18,6 +18,12 @@ public class LevelManager {
     TiledMapTileLayer collisionLayer;
     MapLayer objectsLayer;
 
+    String scoreItemTexturePath;
+    String poisonItemTexturePath;
+    boolean birdAlwaysVisible;
+    String relicMode;
+    String relicTexturePath;
+
     public LevelManager() {
         this.batch = new SpriteBatch();
     }
@@ -37,7 +43,34 @@ public class LevelManager {
         collisionLayer = (TiledMapTileLayer) map.getLayers().get("Terrain");
         objectsLayer = map.getLayers().get("Objects");
 
+        Object propScoreItemTexture = map.getProperties().get("scoreItemTexture");
+        scoreItemTexturePath = (propScoreItemTexture != null)
+            ? propScoreItemTexture.toString()
+            : "items/score_item_egg.png";
+
+        Object propPoisonItemTexture = map.getProperties().get("poisonItemTexture");
+        poisonItemTexturePath = (propPoisonItemTexture != null)
+            ? propPoisonItemTexture.toString()
+            : "items/poison_item_seed.png";
+
+        Object propBirdAlwaysVisible = map.getProperties().get("birdAlwaysVisible");
+        if (propBirdAlwaysVisible instanceof Boolean) {
+            birdAlwaysVisible = (Boolean) propBirdAlwaysVisible;
+        } else {
+            birdAlwaysVisible = propBirdAlwaysVisible != null
+                && propBirdAlwaysVisible.toString().equalsIgnoreCase("true");
+        }
+
+        Object propRelicMode = map.getProperties().get("relicMode");
+        relicMode = (propRelicMode != null) ? propRelicMode.toString() : "texture";
+
+        Object propRelicTexturePath = map.getProperties().get("relicTexturePath");
+        relicTexturePath = (propRelicTexturePath != null)
+            ? propRelicTexturePath.toString()
+            : "relic/bone.png";
+
         mapRenderer = new OrthogonalTiledMapRenderer(map, MAP_SCALE, batch);
+
     }
 
     public OrthogonalTiledMapRenderer getMapRenderer() {
@@ -74,6 +107,26 @@ public class LevelManager {
 
     public float getWorldHeight() {
         return getMapHeightInTiles() * getTileHeight();
+    }
+
+    public String getScoreItemTexturePath() {
+        return scoreItemTexturePath;
+    }
+
+    public String getPoisonItemTexturePath() {
+        return poisonItemTexturePath;
+    }
+
+    public boolean isBirdAlwaysVisible() {
+        return birdAlwaysVisible;
+    }
+
+    public String getRelicMode() {
+        return relicMode;
+    }
+
+    public String getRelicTexturePath() {
+        return relicTexturePath;
     }
 
     public SpriteBatch getBatch() {

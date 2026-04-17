@@ -10,6 +10,8 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.svalero.expedition.ExpeditionGame;
 import com.svalero.expedition.screen.GameScreen;
 import com.svalero.expedition.screen.ConfigurationScreen;
+import com.svalero.expedition.screen.RankingScreen;
+import com.svalero.expedition.manager.TextStyleManager;
 
 public class MainMenuScreen implements Screen {
 
@@ -40,6 +42,7 @@ public class MainMenuScreen implements Screen {
         font.draw(batch, "ENTER -> jugar", 220, 300);
         font.draw(batch, "I -> instrucciones", 220, 270);
         font.draw(batch, "C -> configuracion", 220, 240);
+        font.draw(batch, "R -> ranking", 220, 210);
         batch.end();
 
         // Cambia a la pantalla de juego
@@ -57,6 +60,11 @@ public class MainMenuScreen implements Screen {
         // Cambia a la pantalla de configuracion
         if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
             game.setScreen(new ConfigurationScreen(game));
+        }
+
+        // Cambia a la pantalla de ranking
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            game.setScreen(new RankingScreen(game));
         }
     }
 

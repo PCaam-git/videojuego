@@ -17,6 +17,8 @@ import com.svalero.expedition.domain.Bird;
 import com.svalero.expedition.domain.ImmunityItem;
 import com.svalero.expedition.domain.PoisonItem;
 
+import java.util.List;
+
 public class RenderManager {
 
     private static final float PLAYER_ANIMATION_FRAME_DURATION = 0.12f;
@@ -90,25 +92,26 @@ public class RenderManager {
 
     // Friend
     private final TextureRegion friendIdleDown;
-    private final TextureRegion friendIdleUp;
-    private final TextureRegion friendIdleLeft;
-    private final TextureRegion friendIdleRight;
 
     // Present
     private final TextureRegion presentIdle;
     private final Animation<TextureRegion> presentOpenAnimation;
+    private final String relicMode;
 
-    public RenderManager(SpriteBatch batch, LogicManager logicManager, CameraManager cameraManager) {
+    public RenderManager(SpriteBatch batch, LogicManager logicManager, CameraManager cameraManager, String scoreItemTexturePath, String poisonItemTexturePath, String relicMode, String relicTexturePath) {
         this.batch = batch;
         this.logicManager = logicManager;
+        this.relicMode = relicMode;
         this.font = new BitmapFont();
+        this.font.setColor(0.2f, 0.2f, 0.2f, 1f);
+        this.font.getData().setScale(1.0f);
         this.cameraManager = cameraManager;
         this.hudMatrix = new Matrix4();
 
-        this.scoreItemTexture = ResourceManager.getTexture("items/egg_item.png");
-        this.relicTexture = ResourceManager.getTexture("relic/bone.png");
-        this.immunityItemTexture = ResourceManager.getTexture("items/apple_item.png");
-        this.poisonItemTexture = ResourceManager.getTexture("items/apple_item.png");
+        this.scoreItemTexture = ResourceManager.getTexture(scoreItemTexturePath);
+        this.relicTexture = ResourceManager.getTexture(relicTexturePath);
+        this.immunityItemTexture = ResourceManager.getTexture("items/immunity_item_apple.png");
+        this.poisonItemTexture = ResourceManager.getTexture(poisonItemTexturePath);
 
         // Player
         this.playerIdleDown = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_down");
@@ -118,9 +121,9 @@ public class RenderManager {
 
         // Friend
         this.friendIdleDown = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_down");
-        this.friendIdleUp = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_up");
-        this.friendIdleLeft = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_left");
-        this.friendIdleRight = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_right");
+//        this.friendIdleUp = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_up");
+//        this.friendIdleLeft = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_left");
+//        this.friendIdleRight = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_right");
 
         this.playerRunDownAnimation = new Animation<>(
             PLAYER_ANIMATION_FRAME_DURATION,
@@ -337,97 +340,98 @@ public class RenderManager {
 
         Relic relic = logicManager.getRelic();
         if (!relic.isCollected()) {
-            if (logicManager.getCurrentLevel() == 1) {
+            if ("present".equalsIgnoreCase(relicMode)) {
                 // Tamaño de la reliquia del nivel 1 duplicado
-                batch.draw(relicTexture, relic.getX(), relic.getY(), relic.getWidth() * 2, relic.getHeight() * 2);
-            } else {
                 batch.draw(getPresentCurrentFrame(), relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+            } else {
+                batch.draw(relicTexture, relic.getX(), relic.getY(), relic.getWidth() *2 , relic.getHeight() *2);
             }
         }
 
-        ScoreItem scoreItem = logicManager.getScoreItem();
-        if (!scoreItem.isCollected()) {
-            batch.draw(scoreItemTexture, scoreItem.getX(), scoreItem.getY(), scoreItem.getWidth(), scoreItem.getHeight());
+        List<ScoreItem> scoreItems = logicManager.getScoreItems();
+        for (ScoreItem scoreItem : scoreItems) {
+            if (!scoreItem.isCollected()) {
+                batch.draw(scoreItemTexture, scoreItem.getX(), scoreItem.getY(), scoreItem.getWidth(), scoreItem.getHeight());
+            }
         }
 
-        ImmunityItem immunityItem = logicManager.getImmunityItem();
-        if (!immunityItem.isCollected()) {
-            batch.draw(immunityItemTexture, immunityItem.getX(), immunityItem.getY(), immunityItem.getWidth(), immunityItem.getHeight());
-        }
+            ImmunityItem immunityItem = logicManager.getImmunityItem();
+            if (!immunityItem.isCollected()) {
+                batch.draw(immunityItemTexture, immunityItem.getX(), immunityItem.getY(), immunityItem.getWidth(), immunityItem.getHeight());
+            }
 
         PoisonItem poisonItem = logicManager.getPoisonItem();
         if (!poisonItem.isCollected()) {
             batch.draw(poisonItemTexture, poisonItem.getX(), poisonItem.getY(), poisonItem.getWidth(), poisonItem.getHeight());
         }
 
-        Supply supply = logicManager.getSupply();
-        batch.draw(getSupplyCurrentFrame(supply), supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
+            Supply supply = logicManager.getSupply();
+            batch.draw(getSupplyCurrentFrame(supply), supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
 
-        batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 30, 30);
-//        if (logicManager.getCurrentLevel() == 2 && logicManager.isFriendConfigured()) {
-//            batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 32, 32);
-//        }
+            batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 30, 30);
 
-        Guardian guardian = logicManager.getGuardian();
-        batch.draw(getGuardianCurrentFrame(guardian), guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
+            Guardian guardian = logicManager.getGuardian();
+            batch.draw(getGuardianCurrentFrame(guardian), guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
 
-        Bird bird = logicManager.getBird();
-        if (bird.isVisible()) {
-            batch.draw(getBirdCurrentFrame(bird), bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight());
-        }
-
-        batch.end();
-
-        batch.setProjectionMatrix(hudMatrix);
-        batch.begin();
-
-        font.draw(batch, "Pulsa ESC para volver al menú", 50, 460);
-        font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 410);
-        font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 380);
-        font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 350);
-        font.draw(batch, "Nivel: " + logicManager.getCurrentLevel(), 50, 320);
-
-        if (logicManager.getGuardianDeathMessageTimer() > 0) {
-            if (logicManager.getCurrentLevel() == 1) {
-                font.draw(batch, "¡El oso te ha atacado! Quizás si le llevas comida..", 50, 100);
-            } else {
-                font.draw(batch, "¡El conejo te ha golpeado en pleno salto!", 50, 100);
+            Bird bird = logicManager.getBird();
+            if (bird.isVisible()) {
+                batch.draw(getBirdCurrentFrame(bird), bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight());
             }
-        }
 
-        if (logicManager.getScoreMessageTimer() > 0) {
-            font.draw(batch, "+25 puntos", 50, 40);
-        }
+            batch.end();
 
-        if (logicManager.getSupplyUnavailableMessageTimer() > 0) {
-            font.draw(batch, "Todavía no puedes pedir ayuda a Frodo", 50, 100);
-        }
+            batch.setProjectionMatrix(hudMatrix);
+            batch.begin();
 
-        if (logicManager.getSupplyHealMessageTimer() > 0) {
-            font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 50, 40);
-        }
+            font.draw(batch, "Pulsa ESC para volver al menú", 50, 460);
+            font.draw(batch, "Puntuación: " + logicManager.getPlayer().getScore(), 50, 430);
+            font.draw(batch, "Energía: " + logicManager.getPlayer().getEnergy() + "/" + logicManager.getPlayer().getMaxEnergy(), 50, 410);
+            font.draw(batch, "Vidas: " + logicManager.getPlayer().getLives(), 50, 390);
+            font.draw(batch, "Nivel: " + logicManager.getCurrentLevel(), 50, 370);
 
-        if (logicManager.getBirdHitMessageTimer() > 0) {
-            if (logicManager.getCurrentLevel() == 1) {
-                font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 50, 100);
-            } else {
-                font.draw(batch, "¡Oh, oh! La avispa ha irrumpido en la zona y te ha atacado!", 50, 100);
+            if (logicManager.getGuardianDeathMessageTimer() > 0) {
+                if (logicManager.getCurrentLevel() == 1) {
+                    font.draw(batch, "¡El oso te ha atacado! Quizás si le llevas comida..", 50, 100);
+                } else {
+                    font.draw(batch, "¡El conejo te ha golpeado en pleno salto!", 50, 100);
+                }
             }
-        }
 
-        if (logicManager.getImmunityMessageTimer() > 0) {
-            if (logicManager.getCurrentLevel() == 1) {
-                font.draw(batch, "¡SUERTE! Con esta manzana podrás acceder a la cueva sin que te ataque el oso", 50, 100);
-            } else {
-                font.draw(batch, "¡IMPULSO! Esta fruta aumenta tu velocidad durante unos segundos", 50, 100);
+            if (logicManager.getScoreMessageTimer() > 0) {
+
+                font.draw(batch, "+25 puntos", 50, 40);
             }
-        }
 
-        if (logicManager.getFriendMessageTimer() > 0) {
-            font.draw(batch, "¡Ya casi has llegado! Busca tu recompensa en una de las casas", 50, 70);
-        }
+            if (logicManager.getSupplyUnavailableMessageTimer() > 0) {
+                font.draw(batch, "Todavía no puedes pedir ayuda a Frodo", 50, 100);
+            }
 
-        batch.end();
+            if (logicManager.getSupplyHealMessageTimer() > 0) {
+                font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 50, 40);
+            }
+
+            if (logicManager.getBirdHitMessageTimer() > 0) {
+                if (logicManager.getCurrentLevel() == 1) {
+                    font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 50, 100);
+                } else {
+                    font.draw(batch, "¡Oh, oh! La avispa ha irrumpido en la zona y te ha atacado!", 50, 100);
+                }
+            }
+
+            if (logicManager.getImmunityMessageTimer() > 0) {
+                if (logicManager.getCurrentLevel() == 1) {
+                    font.draw(batch, "¡SUERTE! Con esta manzana podrás acceder a la cueva sin que te ataque el jabalí", 50, 100);
+                } else {
+                    font.draw(batch, "¡IMPULSO! Esta fruta aumenta tu velocidad durante unos segundos", 50, 100);
+                }
+            }
+
+            if (logicManager.getFriendMessageTimer() > 0) {
+                font.draw(batch, "¡Ya casi has llegado! Busca tu recompensa en una de las casas", 50, 70);
+            }
+
+            batch.end();
+
     }
 
     public void dispose() {

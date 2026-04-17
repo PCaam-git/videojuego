@@ -117,6 +117,10 @@ public class Bird extends NPC {
         this.alwaysVisible = alwaysVisible;
     }
 
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
     public boolean isActive() {
         return state == BirdState.ATTACKING || state == BirdState.RETURNING;
     }
