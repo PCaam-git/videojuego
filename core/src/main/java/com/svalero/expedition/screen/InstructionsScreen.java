@@ -36,31 +36,30 @@ public class InstructionsScreen implements Screen{
         }
 
         batch.begin();
-        font.draw(batch, "INSTRUCCIONES", 300, 440);
-
         // Historia del juego
-        font.draw(batch, "Emily, una joven exploradora, recorre el bosque junto a Frodo,", 80, 390);
-        font.draw(batch, "su perro y compañero de aventuras.", 80, 360);
-        font.draw(batch, "En lo profundo del bosque se encuentra el hueso perdido,", 80, 330);
-        font.draw(batch, "custodiado por un gran oso.", 80, 300);
+        font.draw(batch, "Emily, una joven exploradora, recorre un entorno natural junto a Frodo,", 80, 440);
+        font.draw(batch, "su perro y compañero de aventuras", 80, 410);
+        font.draw(batch, "para recuperar su hueso antes de volver a casa.", 80, 380);
+        font.draw(batch, "¿Serán capaces de sortear todos los obstáculos del camino?", 80, 350);
 
-        // Objetivo del nivel
-        font.draw(batch, "OBJETIVO DEL NIVEL 1", 80, 250);
-        font.draw(batch, "Recupera el hueso y evita los peligros del camino.", 80, 220);
+        // Objetivos
+        font.draw(batch, "OBJETIVOS", 80, 300);
+        font.draw(batch, "Nivel 1: recupera el hueso escapando del jabalí.", 80, 280);
+        font.draw(batch, "Nivel 2: llega a casa sorteando los obstáculos del camino.", 80, 260);
 
-        // Objetos del nivel
-        font.draw(batch, "OBJETOS DEL NIVEL", 80, 180);
-        font.draw(batch, "Huevo: +25 puntos", 80, 150);
-        font.draw(batch, "Manzana: inmunidad", 80, 120);
-        font.draw(batch, "Veneno: ralentiza al personaje", 80, 90);
+        // Objetos por nivel
+        font.draw(batch, "OBJETOS", 80, 210);
+        font.draw(batch, "Nivel 1 -> Huevo: +25 puntos | Manzana: inmunidad | Semilla: ralentiza", 80, 190);
+        font.draw(batch, "Nivel 2 -> Naranja: +25 puntos | Fruta: impulso | Seta: ralentiza", 80, 170);
+
 
         // Controles
-        font.draw(batch, "CONTROLES", 380, 180);
-        font.draw(batch, "Flechas -> mover a la protagonista", 380, 150);
-        font.draw(batch, "P -> llamar a Frodo y recuperar energía", 380, 120);
+        font.draw(batch, "CONTROLES", 80, 120);
+        font.draw(batch, "Flechas -> mover a la protagonista", 80, 100);
+        font.draw(batch, "P -> llamar a Frodo y recuperar energía", 80, 80);
 
         // Navegacion
-        font.draw(batch, "ESC -> volver al menu principal", 220, 40);
+        font.draw(batch, "ESC -> volver al menu principal", 80, 40);
         batch.end();
     }
 
