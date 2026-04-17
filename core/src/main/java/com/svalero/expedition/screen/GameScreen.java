@@ -43,6 +43,8 @@ public class GameScreen implements Screen {
 
         // Carga el TMX correspondiente al nivel actual del juego
         levelManager.loadCurrentLevel(game.getCurrentLevel());
+
+        logicManager.setBirdAlwaysVisible(levelManager.isBirdAlwaysVisible());
         logicManager.loadMapObjects(levelManager.getObjectsLayer());
         logicManager.setWorldSize(levelManager.getWorldWidth(), levelManager.getWorldHeight());
         logicManager.setCollisionLayer(
@@ -52,7 +54,16 @@ public class GameScreen implements Screen {
         );
 
         cameraManager = new CameraManager(logicManager, levelManager);
-        this.renderManager = new RenderManager(levelManager.getBatch(), logicManager, cameraManager);
+        this.renderManager = new RenderManager(
+            levelManager.getBatch(),
+            logicManager,
+            cameraManager,
+            levelManager.getScoreItemTexturePath(),
+            levelManager.getPoisonItemTexturePath(),
+            levelManager.getRelicMode(),
+            levelManager.getRelicTexturePath()
+        );
+
 
         // Prepara la música de fondo del nivel
         backgroundMusic = ResourceManager.getMusic("music/background_music.wav");

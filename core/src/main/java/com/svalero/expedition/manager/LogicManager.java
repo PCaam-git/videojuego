@@ -42,7 +42,7 @@ public class LogicManager {
     private static final float SPEED_BOOST_DURATION = 4f;
     private static final float SPEED_BOOST_FACTOR = 1.8f;
 
-    private static final float LEVEL_2_BIRD_SPEED = 250f;
+    private static final float DEFAULT_BIRD_SPEED = 400f;
 
     private final Player player;
     private Relic relic;
@@ -84,6 +84,7 @@ public class LogicManager {
     private float birdZoneWidth;
     private float birdZoneHeight;
     private boolean birdZoneConfigured;
+    private boolean birdAlwaysVisible;
 
     private float worldWidth;
     private float worldHeight;
@@ -135,8 +136,7 @@ public class LogicManager {
         immunityItem = new ImmunityItem(200, 300, 24, 24);
         poisonItem = new PoisonItem(400, 300, 24, 24);
 
-        float birdSpeed = (currentLevel == 2) ? LEVEL_2_BIRD_SPEED : 350f;
-        bird = new Bird(-60, Gdx.graphics.getHeight() - 36, birdSpeed, 320);
+        bird = new Bird(-60, Gdx.graphics.getHeight() - 36, DEFAULT_BIRD_SPEED, 320);
 
         guardianDamageTimer = 0;
         birdDamageTimer = 0;
@@ -172,6 +172,7 @@ public class LogicManager {
         birdZoneWidth = 0;
         birdZoneHeight = 0;
         birdZoneConfigured = false;
+        birdAlwaysVisible = false;
 
         friendZoneX = 0;
         friendZoneY = 0;
@@ -180,14 +181,13 @@ public class LogicManager {
         friendZoneConfigured = false;
         friendMessageTriggered = false;
         friendMessageTimer = 0;
-
-        if (currentLevel == 2) {
-            bird.setIdlePosition(birdStartX, birdStartY);
-            bird.setAlwaysVisible(true);
-        }
     }
 
     // -- SETUP -- Métodos de configuración inicial
+
+    public void setBirdAlwaysVisible(boolean birdAlwaysVisible) {
+        this.birdAlwaysVisible = birdAlwaysVisible;
+    }
 
     public void setWorldSize(float worldWidth, float worldHeight) {
         this.worldWidth = worldWidth;
@@ -322,7 +322,14 @@ public class LogicManager {
                     birdStartX = x;
                     birdStartY = y;
 
-                    if (currentLevel == 2) {
+                    Object propBirdSpeed = object.getProperties().get("speed");
+                    float birdSpeed = (propBirdSpeed != null)
+                        ? ((Number) propBirdSpeed).floatValue()
+                        : DEFAULT_BIRD_SPEED;
+
+                    bird.setSpeed(birdSpeed);
+
+                    if (birdAlwaysVisible) {
                         bird.setIdlePosition(x, y);
                         bird.setAlwaysVisible(true);
                     } else {
@@ -1022,7 +1029,7 @@ public class LogicManager {
         boolean outTop = bird.getY() > worldHeight + 60;
 
         if (outRight || outLeft || outBottom || outTop) {
-            if (currentLevel == 2) {
+            if (birdAlwaysVisible) {
                 bird.setIdlePosition(birdStartX, birdStartY);
                 bird.setAlwaysVisible(true);
                 birdAttackCooldownTimer = 2.5f;
@@ -1086,7 +1093,7 @@ public class LogicManager {
         supply.reset(supplyStartX, supplyStartY);
 
         if (bird != null) {
-            if (currentLevel == 2) {
+            if (birdAlwaysVisible) {
                 bird.setIdlePosition(birdStartX, birdStartY);
                 bird.setAlwaysVisible(true);
             } else {

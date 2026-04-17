@@ -39,11 +39,9 @@ public class RenderManager {
     private final Matrix4 hudMatrix;
 
     private final Texture scoreItemTexture;
-    private final Texture scoreItemLevel2Texture;
     private final Texture relicTexture;
     private final Texture immunityItemTexture;
     private final Texture poisonItemTexture;
-    private final Texture poisonItemLevel2Texture;
 
     // Player
     private final TextureRegion playerIdleDown;
@@ -94,29 +92,26 @@ public class RenderManager {
 
     // Friend
     private final TextureRegion friendIdleDown;
-    private final TextureRegion friendIdleUp;
-    private final TextureRegion friendIdleLeft;
-    private final TextureRegion friendIdleRight;
 
     // Present
     private final TextureRegion presentIdle;
     private final Animation<TextureRegion> presentOpenAnimation;
+    private final String relicMode;
 
-    public RenderManager(SpriteBatch batch, LogicManager logicManager, CameraManager cameraManager) {
+    public RenderManager(SpriteBatch batch, LogicManager logicManager, CameraManager cameraManager, String scoreItemTexturePath, String poisonItemTexturePath, String relicMode, String relicTexturePath) {
         this.batch = batch;
         this.logicManager = logicManager;
+        this.relicMode = relicMode;
         this.font = new BitmapFont();
         this.font.setColor(0.2f, 0.2f, 0.2f, 1f);
         this.font.getData().setScale(1.0f);
         this.cameraManager = cameraManager;
         this.hudMatrix = new Matrix4();
 
-        this.scoreItemTexture = ResourceManager.getTexture("items/score_item_egg.png");
-        this.scoreItemLevel2Texture = ResourceManager.getTexture("items/score_item_orange.png");
-        this.relicTexture = ResourceManager.getTexture("relic/bone.png");
+        this.scoreItemTexture = ResourceManager.getTexture(scoreItemTexturePath);
+        this.relicTexture = ResourceManager.getTexture(relicTexturePath);
         this.immunityItemTexture = ResourceManager.getTexture("items/immunity_item_apple.png");
-        this.poisonItemTexture = ResourceManager.getTexture("items/poison_item_seed.png");
-        this.poisonItemLevel2Texture = ResourceManager.getTexture("items/poison_item_mushroom.png");
+        this.poisonItemTexture = ResourceManager.getTexture(poisonItemTexturePath);
 
         // Player
         this.playerIdleDown = ResourceManager.getRegion(PLAYER_ATLAS_PATH, "player_idle_down");
@@ -126,9 +121,9 @@ public class RenderManager {
 
         // Friend
         this.friendIdleDown = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_down");
-        this.friendIdleUp = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_up");
-        this.friendIdleLeft = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_left");
-        this.friendIdleRight = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_right");
+//        this.friendIdleUp = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_up");
+//        this.friendIdleLeft = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_left");
+//        this.friendIdleRight = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_right");
 
         this.playerRunDownAnimation = new Animation<>(
             PLAYER_ANIMATION_FRAME_DURATION,
@@ -345,11 +340,11 @@ public class RenderManager {
 
         Relic relic = logicManager.getRelic();
         if (!relic.isCollected()) {
-            if (logicManager.getCurrentLevel() == 1) {
+            if ("present".equalsIgnoreCase(relicMode)) {
                 // Tamaño de la reliquia del nivel 1 duplicado
-                batch.draw(relicTexture, relic.getX(), relic.getY(), relic.getWidth() * 2, relic.getHeight() * 2);
-            } else {
                 batch.draw(getPresentCurrentFrame(), relic.getX(), relic.getY(), relic.getWidth(), relic.getHeight());
+            } else {
+                batch.draw(relicTexture, relic.getX(), relic.getY(), relic.getWidth() *2 , relic.getHeight() *2);
             }
         }
 
@@ -365,21 +360,15 @@ public class RenderManager {
                 batch.draw(immunityItemTexture, immunityItem.getX(), immunityItem.getY(), immunityItem.getWidth(), immunityItem.getHeight());
             }
 
-            PoisonItem poisonItem = logicManager.getPoisonItem();
-            if (!poisonItem.isCollected()) {
-                Texture currentPoisonItemTexture = (logicManager.getCurrentLevel() == 2)
-                    ? poisonItemLevel2Texture
-                    : poisonItemTexture;
-                batch.draw(poisonItemTexture, poisonItem.getX(), poisonItem.getY(), poisonItem.getWidth(), poisonItem.getHeight());
-            }
+        PoisonItem poisonItem = logicManager.getPoisonItem();
+        if (!poisonItem.isCollected()) {
+            batch.draw(poisonItemTexture, poisonItem.getX(), poisonItem.getY(), poisonItem.getWidth(), poisonItem.getHeight());
+        }
 
             Supply supply = logicManager.getSupply();
             batch.draw(getSupplyCurrentFrame(supply), supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
 
             batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 30, 30);
-//        if (logicManager.getCurrentLevel() == 2 && logicManager.isFriendConfigured()) {
-//            batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 32, 32);
-//        }
 
             Guardian guardian = logicManager.getGuardian();
             batch.draw(getGuardianCurrentFrame(guardian), guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
