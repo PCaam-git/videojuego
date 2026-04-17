@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="27">
+ <properties>
+  <property name="birdAlwaysVisible" type="bool" value="false"/>
+  <property name="poisonItemTexture" value="items/poison_item_seed.png"/>
+  <property name="relicMode" value="texture"/>
+  <property name="relicTexturePath" value="relic/bone.png"/>
+  <property name="scoreItemTexture" value="items/score_item_egg.png"/>
+  <property name="theme" value="level_1"/>
+ </properties>
  <tileset firstgid="1" name="grass" tilewidth="16" tileheight="16" tilecount="77" columns="11">
   <image source="../map/tiles/grass.png" width="176" height="112"/>
  </tileset>
@@ -140,6 +148,9 @@
    <point/>
   </object>
   <object id="19" name="bird" type="bird" x="375.5" y="321.5">
+   <properties>
+    <property name="speed" type="int" value="400"/>
+   </properties>
    <point/>
   </object>
   <object id="22" name="supply" type="supply" x="26" y="298">
