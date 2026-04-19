@@ -33,8 +33,8 @@ public class LogicManager {
     private static final float SUPPLY_FOLLOW_EXTRA_DISTANCE = 32f;
     private static final float SUPPLY_CALL_SPEED = 90f;
     private static final float SUPPLY_FOLLOW_SPEED = 70f;
-    private static final float LEVEL_2_SUPPLY_CALL_SPEED = 140f;
-    private static final float LEVEL_2_SUPPLY_FOLLOW_SPEED = 120f;
+    private static final float LEVEL_2_SUPPLY_CALL_SPEED = 160f;
+    private static final float LEVEL_2_SUPPLY_FOLLOW_SPEED = 140f;
 
     private static final float POISON_DURATION = 5f;
     private static final float POISON_SPEED_FACTOR = 0.2f;
@@ -598,7 +598,7 @@ public class LogicManager {
                 // sonido de llamada a frodo
                 playSound("sounds/call_supply.wav");
             } else {
-                supplyUnavailableMessageTimer = 1.5f;
+                supplyUnavailableMessageTimer = 2f;
             }
         }
     }
@@ -819,7 +819,7 @@ public class LogicManager {
             if (collisionX && collisionY) {
                 scoreItem.setCollected(true);
                 player.setScore(player.getScore() + scoreItem.getScoreValue());
-                scoreMessageTimer = 1.5f;
+                scoreMessageTimer = 2f;
 
                 // Sonido al recoger item de puntuación
                 playSound("sounds/score_collect.wav");
@@ -848,7 +848,7 @@ public class LogicManager {
 
         if (collisionX && collisionY) {
             immunityItem.setCollected(true);
-            immunityMessageTimer = 1.5f;
+            immunityMessageTimer = 2.5f;
 
             if (currentLevel == 1) {
                 player.addImmunity();
@@ -885,7 +885,7 @@ public class LogicManager {
         if (collisionX && collisionY) {
             poisonItem.setCollected(true);
             poisonTimer = POISON_DURATION;
-            poisonMessageTimer = 1.5f;
+            poisonMessageTimer = 2f;
             player.addPoison();
 
             // Sonido al recoger veneno
@@ -932,7 +932,7 @@ public class LogicManager {
             player.setEnergy(player.getEnergy() + SUPPLY_HEALTH_AMOUNT);
 
             lastSupplyHealAmount = player.getEnergy() - previousEnergy;
-            supplyHealMessageTimer = 1.5f;
+            supplyHealMessageTimer = 2f;
             // frodo entra en espera después de curar a Emily
             supplyCooldownTimer = SUPPLY_CALL_COOLDOWN;
             supply.setCalled(false);
@@ -960,12 +960,12 @@ public class LogicManager {
             if (currentLevel == 1) {
                 if (player.getImmunityCollected() == 0) {
                     killPlayerByGuardian();
-                    guardianDamageTimer = 1.5f;
+                    guardianDamageTimer = 2f;
                 }
             } else {
                 // Nivel 2: el boost de velocidad no evita el daño del guardián
                 killPlayerByGuardian();
-                guardianDamageTimer = 1.5f;
+                guardianDamageTimer = 2f;
             }
         }
     }
@@ -994,7 +994,7 @@ public class LogicManager {
             player.setScore(player.getScore() - 15);
 
             birdDamageTimer = 1f;
-            birdHitMessageTimer = 1.5f;
+            birdHitMessageTimer = 2f;
 
             if (bird.isMovingRight()) {
                 pushPlayerBackSafely(64f, true);

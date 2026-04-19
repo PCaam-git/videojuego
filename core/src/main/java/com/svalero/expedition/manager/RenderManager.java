@@ -121,9 +121,6 @@ public class RenderManager {
 
         // Friend
         this.friendIdleDown = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_down");
-//        this.friendIdleUp = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_up");
-//        this.friendIdleLeft = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_left");
-//        this.friendIdleRight = ResourceManager.getRegion(FRIEND_ATLAS_PATH, "friend_idle_right");
 
         this.playerRunDownAnimation = new Animation<>(
             PLAYER_ANIMATION_FRAME_DURATION,
@@ -230,6 +227,7 @@ public class RenderManager {
             PLAYER_ANIMATION_FRAME_DURATION,
             ResourceManager.getRegions(PRESENT_ATLAS_PATH, "present")
         );
+
     }
 
     private TextureRegion getPlayerCurrentFrame(Player player) {
@@ -365,19 +363,19 @@ public class RenderManager {
             batch.draw(poisonItemTexture, poisonItem.getX(), poisonItem.getY(), poisonItem.getWidth(), poisonItem.getHeight());
         }
 
-            Supply supply = logicManager.getSupply();
-            batch.draw(getSupplyCurrentFrame(supply), supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
+        Supply supply = logicManager.getSupply();
+        batch.draw(getSupplyCurrentFrame(supply), supply.getX(), supply.getY(), supply.getWidth(), supply.getHeight());
 
-            batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 30, 30);
+        // friend
+        batch.draw(friendIdleDown, logicManager.getFriendX(), logicManager.getFriendY(), 24, 24);
 
-            Guardian guardian = logicManager.getGuardian();
-            batch.draw(getGuardianCurrentFrame(guardian), guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
+        Guardian guardian = logicManager.getGuardian();
+        batch.draw(getGuardianCurrentFrame(guardian), guardian.getX(), guardian.getY(), guardian.getWidth(), guardian.getHeight());
 
-            Bird bird = logicManager.getBird();
+        Bird bird = logicManager.getBird();
             if (bird.isVisible()) {
                 batch.draw(getBirdCurrentFrame(bird), bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight());
             }
-
             batch.end();
 
             batch.setProjectionMatrix(hudMatrix);
@@ -391,43 +389,52 @@ public class RenderManager {
 
             if (logicManager.getGuardianDeathMessageTimer() > 0) {
                 if (logicManager.getCurrentLevel() == 1) {
-                    font.draw(batch, "¡El oso te ha atacado! Quizás si le llevas comida..", 50, 100);
+                    font.draw(batch, "¡El jabalí te ha atacado! Quizás si le llevas comida..", 120, 315);
+                    font.draw(batch, "Quizás si le llevas comida..", 120, 300);
                 } else {
-                    font.draw(batch, "¡El conejo te ha golpeado en pleno salto!", 50, 100);
+                    font.draw(batch, "¡El conejo te ha golpeado en pleno salto!", 120, 315);
+                    font.draw(batch, "Esquívalo la próxima vez..", 120, 300);
                 }
             }
 
             if (logicManager.getScoreMessageTimer() > 0) {
 
-                font.draw(batch, "+25 puntos", 50, 40);
+                font.draw(batch, "+25 puntos", 120, 120);
+            }
+
+            if (logicManager.getPoisonMessageTimer() > 0 ) {
+                font.draw(batch, "¡MALA SUERTE, te has envenenado!", 100, 315);
+                font.draw(batch, "Serás más lento durante los próximos 5s", 100, 300);
             }
 
             if (logicManager.getSupplyUnavailableMessageTimer() > 0) {
-                font.draw(batch, "Todavía no puedes pedir ayuda a Frodo", 50, 100);
+                font.draw(batch, "Todavía no puedes pedir ayuda a Frodo", 120, 200);
             }
 
             if (logicManager.getSupplyHealMessageTimer() > 0) {
-                font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 50, 40);
+                font.draw(batch, "¡Frodo ha restaurado " + logicManager.getLastSupplyHealAmount() + " puntos de energía!", 120, 200);
             }
 
             if (logicManager.getBirdHitMessageTimer() > 0) {
                 if (logicManager.getCurrentLevel() == 1) {
-                    font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 50, 100);
+                    font.draw(batch, "¡Has asustado al pájaro y te ha atacado!", 120, 200);
                 } else {
-                    font.draw(batch, "¡Oh, oh! La avispa ha irrumpido en la zona y te ha atacado!", 50, 100);
+                    font.draw(batch, "¡Oh, oh! La avispa te ha atacado!", 120, 200);
                 }
             }
 
             if (logicManager.getImmunityMessageTimer() > 0) {
                 if (logicManager.getCurrentLevel() == 1) {
-                    font.draw(batch, "¡SUERTE! Con esta manzana podrás acceder a la cueva sin que te ataque el jabalí", 50, 100);
+                    font.draw(batch, "¡SUERTE! Con esta manzana podrás acceder a la cueva", 100, 315);
+                    font.draw(batch, "sin que te ataque el jabalí", 100, 300);
                 } else {
-                    font.draw(batch, "¡IMPULSO! Esta fruta aumenta tu velocidad durante unos segundos", 50, 100);
+                    font.draw(batch, "¡IMPULSO! Esta fruta aumenta tu velocidad durante unos segundos", 100, 300);
                 }
             }
 
             if (logicManager.getFriendMessageTimer() > 0) {
-                font.draw(batch, "¡Ya casi has llegado! Busca tu recompensa en una de las casas", 50, 70);
+                font.draw(batch, "¡Ya casi has llegado! ", 120, 315);
+                font.draw(batch, "Busca tu recompensa en una de las casas", 120, 300);
             }
 
             batch.end();
